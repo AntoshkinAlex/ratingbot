@@ -3,9 +3,7 @@ import telebot
 import structure as struct
 import index as req
 import const
-from operator import itemgetter
 from telebot import types
-from collections import OrderedDict
 import texttable as table
 
 TOKEN = "1108350056:AAGg7QZA6lABP8L3FPfYvTU4_WZJh5Rv9ck"
