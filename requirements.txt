@@ -1,8 +1,8 @@
+telebot
 arrow==0.15.5
 pyTelegramBotAPI==3.6.7
 python-dateutil==2.8.1
 requests==2.23.0
 six==1.14.0
-telebot==0.0.3
 texttable==1.6.2
 times==0.7
