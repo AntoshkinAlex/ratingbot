@@ -5,7 +5,6 @@ import index as req
 import const
 from telebot import types
 import texttable as table
-import pyTelegramBotAPI
 
 TOKEN = "1108350056:AAGg7QZA6lABP8L3FPfYvTU4_WZJh5Rv9ck"
 bot = telebot.TeleBot(TOKEN)
@@ -93,7 +92,7 @@ def print_all_rating(chatId):
 @bot.message_handler(commands=["start"])
 def start_chat(message):
     menuKey = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    menuBut = types.KeyboardButton(text = "Меню")
+    menuBut = types.KeyboardButton(text="Меню")
     menuKey.add(menuBut)
 
     key = types.InlineKeyboardMarkup()
