@@ -5,6 +5,7 @@ import index as req
 import const
 from telebot import types
 import texttable as table
+import pyTelegramBotAPI
 
 TOKEN = "1108350056:AAGg7QZA6lABP8L3FPfYvTU4_WZJh5Rv9ck"
 bot = telebot.TeleBot(TOKEN)
