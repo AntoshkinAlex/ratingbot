@@ -21,30 +21,6 @@ def print_contests(chatId):
     bot.send_message(chatId, "Выберите контест:", reply_markup=key)
 
 
-"""table = texttable.Texttable()
-table.set_cols_align(["c", "c", "c"])
-table.set_cols_valign(["m", "m", "m"])
-table.set_deco(texttable.Texttable.HEADER)#, texttable.Texttable.HEADER)
-table.add_rows([["Name", "Age", "Nickname"],
-                ["Mr\nXavier\nHuon", 32, "Xav'"],
-                ["Mr\nBaptiste\nClement", 1, "Baby"],
-                ["Mme\nLouise\nBourgeau", 28, "Lou\nLoue"]])
-print(table.draw() + "\n")
-table = texttable.Texttable()
-table.set_deco(texttable.Texttable.HEADER)#, texttable.Texttable.HEADER)
-table.set_cols_dtype(['t',  # text
-                      'f',  # float (decimal)
-                      'e',  # float (exponent)
-                      'i',  # integer
-                      'a']) # automatic
-table.set_cols_align(["l", "r", "r", "r", "l"])
-table.add_rows([["text",    "float", "exp", "int", "auto"],
-                ["abcd",    "67",    654,   89,    128.001],
-                ["efghijk", 67.5434, .654,  89.6,  12800000000000000000000.00023],
-                ["lmn",     5e-78,   5e-78, 89.4,  .000000000000128],
-                ["opqrstu", .023,    5e+78, 92.,   12800000000000000000000]])
-"""
-
 def print_contest_information(chatId, contestId):
     contest = struct.get_contest_information(contestId)
     contestTop = struct.get_first_three_place(contestId)
