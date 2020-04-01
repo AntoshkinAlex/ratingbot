@@ -1,1 +1,1 @@
-bot: python telebot-hq.py
+bot: python3 telebot-hq.py
