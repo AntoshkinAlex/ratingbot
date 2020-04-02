@@ -93,16 +93,19 @@ def get_contest_information(contestId):
 
 
 def get_first_three_place(contestId):
-    contestInfomation = get_contest_information(contestId)
-    cnt = 0
-    firstPlaces = []
-    for user in contestInfomation['users']:
-        if contestInfomation['users'][user]['rank'] != 0:
-            firstPlaces.append([user, contestInfomation['users'][user]['solvedCount']])
-            cnt += 1
-        if cnt == 3:
-            break
-    return firstPlaces
+    try:
+        contestInfomation = get_contest_information(contestId)
+        cnt = 0
+        firstPlaces = []
+        for user in contestInfomation['users']:
+            if contestInfomation['users'][user]['rank'] != 0:
+                firstPlaces.append([user, contestInfomation['users'][user]['solvedCount']])
+                cnt += 1
+            if cnt == 3:
+                break
+        return firstPlaces
+    except:
+        print('Не удалось взять топ 3')
 
 
 def get_hq_contests():
@@ -125,32 +128,35 @@ def take_contests():
         time.sleep(300)
 
 def get_all_rating():
-    hq_rating = {}
-    solved = {}
-    upsolved = {}
-    hq_rating_information = {}
-    for handle in const.handles.keys():
-        hq_rating[handle] = 0
-        solved[handle] = 0
-        upsolved[handle] = 0
+    try:
+        hq_rating = {}
+        solved = {}
+        upsolved = {}
+        hq_rating_information = {}
+        for handle in const.handles.keys():
+            hq_rating[handle] = 0
+            solved[handle] = 0
+            upsolved[handle] = 0
 
-    for contestId in const.hq_contests:
-        contestInfomation = get_contest_information(contestId)
-        for user in contestInfomation['users']:
-            if (user in const.handles):
-                hq_rating[user] += contestInfomation['users'][user]['rating']
-                solved[user] += contestInfomation['users'][user]['solvedCount']
-                upsolved[user] += contestInfomation['users'][user]['upsolvedCount']
+        for contestId in const.hq_contests:
+            contestInfomation = get_contest_information(contestId)
+            for user in contestInfomation['users']:
+                if (user in const.handles):
+                    hq_rating[user] += contestInfomation['users'][user]['rating']
+                    solved[user] += contestInfomation['users'][user]['solvedCount']
+                    upsolved[user] += contestInfomation['users'][user]['upsolvedCount']
 
-    hq_rating = sorted(hq_rating.items(), key=operator.itemgetter(1))
-    hq_rating.reverse()
-    for item in hq_rating:
-        user = item[0]
-        hq_rating_information[user] = {}
-        hq_rating_information[user]['solved'] = solved[user]
-        hq_rating_information[user]['upsolved'] = upsolved[user]
-        hq_rating_information[user]['rating'] = item[1]
-    return hq_rating_information
+        hq_rating = sorted(hq_rating.items(), key=operator.itemgetter(1))
+        hq_rating.reverse()
+        for item in hq_rating:
+            user = item[0]
+            hq_rating_information[user] = {}
+            hq_rating_information[user]['solved'] = solved[user]
+            hq_rating_information[user]['upsolved'] = upsolved[user]
+            hq_rating_information[user]['rating'] = item[1]
+        return hq_rating_information
+    except:
+        print('Не удалось получить общий рейтинг')
 
 
 def declension(number, dec1, dec2, dec3):
