@@ -25,68 +25,71 @@ def get_solved_count(solved, upsolved):
 
 
 def get_contest_information(contestId):
-    standings = req.get_codeforces_contest_stadings(273749, True)
-    contestInformation = {}
-    contestInformation['name'] = req.get_contestName(contestId)
-
-    users = {}
-    maxSolved = 1
-    problemCount = len(standings['result']['problems'])
-
-    for user in standings['result']['rows']:
-        userName = user['party']['members'][0]['handle']
-        if not (get_username(userName) in const.handles):
-            continue
-        if not(get_username(userName) in users):
-            users[get_username(userName)] = {}
-        users[get_username(userName)]['rank'] = user['rank']
-        users[get_username(userName)]['solved'] = [False for i in range(problemCount)]
-        users[get_username(userName)]['upsolved'] = [False for i in range(problemCount)]
-
-    for user in standings['result']['rows']:
-        userName = user['party']['members'][0]['handle']
-        if not (get_username(userName) in const.handles):
-            continue
-        if userName.find('=') == -1:
-            continue
-        if user['rank'] != 0:
-            users[get_username(userName)]['rank'] = user['rank']
-        for index, problem in enumerate(user['problemResults']):
-            if user['rank'] != 0:
-                if problem['points'] == 1:
-                    users[get_username(userName)]['solved'][index] = True
-            else:
-                if problem['points'] == 1:
-                    users[get_username(userName)]['upsolved'][index] = True
-    for user in users:
-        users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'],  users[user]['upsolved'])
-        maxSolved = max(maxSolved, users[user]['solvedCount'])
-    for user in users:
-        users[user]['rating'] = get_contest_rating(users[user]['rank'], len(users),  users[user]['solvedCount'], maxSolved,  users[user]['upsolvedCount'], problemCount)
-    for user in const.handles:
-        if not(user in users):
-            users[user] = {}
-            users[user]['rank'] = 0
-            users[user]['solvedCount'] = 0
-            users[user]['upsolvedCount'] = 0
-            users[user]['rating'] = 0
-            users[user]['solved'] = [False for i in range(problemCount)]
-            users[user]['upsolved'] = [False for i in range(problemCount)]
-
-
-    contestInformation['users'] = users
-
-    status = req.get_codeforces_contest_status(273749)
     try:
-        for submission in range(len(status['result']) - 1, -1, -1):
-            if status['result'][submission]['verdict'] == 'OK':
-                contestInformation['firstSubmission'] = {}
-                contestInformation['firstSubmission']['name'] = get_username(status['result'][submission]['author']['members'][0]['handle'])
-                contestInformation['firstSubmission']['time'] = status['result'][submission]['relativeTimeSeconds'] // 60
-                break
+        standings = req.get_codeforces_contest_stadings(273749, True)
+        contestInformation = {}
+        contestInformation['name'] = req.get_contestName(contestId)
+
+        users = {}
+        maxSolved = 1
+        problemCount = len(standings['result']['problems'])
+
+        for user in standings['result']['rows']:
+            userName = user['party']['members'][0]['handle']
+            if not (get_username(userName) in const.handles):
+                continue
+            if not(get_username(userName) in users):
+                users[get_username(userName)] = {}
+            users[get_username(userName)]['rank'] = user['rank']
+            users[get_username(userName)]['solved'] = [False for i in range(problemCount)]
+            users[get_username(userName)]['upsolved'] = [False for i in range(problemCount)]
+
+        for user in standings['result']['rows']:
+            userName = user['party']['members'][0]['handle']
+            if not (get_username(userName) in const.handles):
+                continue
+            if userName.find('=') == -1:
+                continue
+            if user['rank'] != 0:
+                users[get_username(userName)]['rank'] = user['rank']
+            for index, problem in enumerate(user['problemResults']):
+                if user['rank'] != 0:
+                    if problem['points'] == 1:
+                        users[get_username(userName)]['solved'][index] = True
+                else:
+                    if problem['points'] == 1:
+                        users[get_username(userName)]['upsolved'][index] = True
+        for user in users:
+            users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'],  users[user]['upsolved'])
+            maxSolved = max(maxSolved, users[user]['solvedCount'])
+        for user in users:
+            users[user]['rating'] = get_contest_rating(users[user]['rank'], len(users),  users[user]['solvedCount'], maxSolved,  users[user]['upsolvedCount'], problemCount)
+        for user in const.handles:
+            if not(user in users):
+                users[user] = {}
+                users[user]['rank'] = 0
+                users[user]['solvedCount'] = 0
+                users[user]['upsolvedCount'] = 0
+                users[user]['rating'] = 0
+                users[user]['solved'] = [False for i in range(problemCount)]
+                users[user]['upsolved'] = [False for i in range(problemCount)]
+
+
+        contestInformation['users'] = users
+
+        status = req.get_codeforces_contest_status(273749)
+        try:
+            for submission in range(len(status['result']) - 1, -1, -1):
+                if status['result'][submission]['verdict'] == 'OK':
+                    contestInformation['firstSubmission'] = {}
+                    contestInformation['firstSubmission']['name'] = get_username(status['result'][submission]['author']['members'][0]['handle'])
+                    contestInformation['firstSubmission']['time'] = status['result'][submission]['relativeTimeSeconds'] // 60
+                    break
+        except:
+            print("Trouble with status")
+        return contestInformation
     except:
-        print("Trouble with status")
-    return contestInformation
+        print('Не получили монитор')
 
 
 def get_first_three_place(contestId):
