@@ -3,9 +3,7 @@ import telebot
 import structure as struct
 import index as req
 import const
-from operator import itemgetter
 from telebot import types
-from collections import OrderedDict
 import texttable as table
 
 TOKEN = "1108350056:AAGg7QZA6lABP8L3FPfYvTU4_WZJh5Rv9ck"
@@ -22,30 +20,6 @@ def print_contests(chatId):
         key.add(button)
     bot.send_message(chatId, "Выберите контест:", reply_markup=key)
 
-
-"""table = texttable.Texttable()
-table.set_cols_align(["c", "c", "c"])
-table.set_cols_valign(["m", "m", "m"])
-table.set_deco(texttable.Texttable.HEADER)#, texttable.Texttable.HEADER)
-table.add_rows([["Name", "Age", "Nickname"],
-                ["Mr\nXavier\nHuon", 32, "Xav'"],
-                ["Mr\nBaptiste\nClement", 1, "Baby"],
-                ["Mme\nLouise\nBourgeau", 28, "Lou\nLoue"]])
-print(table.draw() + "\n")
-table = texttable.Texttable()
-table.set_deco(texttable.Texttable.HEADER)#, texttable.Texttable.HEADER)
-table.set_cols_dtype(['t',  # text
-                      'f',  # float (decimal)
-                      'e',  # float (exponent)
-                      'i',  # integer
-                      'a']) # automatic
-table.set_cols_align(["l", "r", "r", "r", "l"])
-table.add_rows([["text",    "float", "exp", "int", "auto"],
-                ["abcd",    "67",    654,   89,    128.001],
-                ["efghijk", 67.5434, .654,  89.6,  12800000000000000000000.00023],
-                ["lmn",     5e-78,   5e-78, 89.4,  .000000000000128],
-                ["opqrstu", .023,    5e+78, 92.,   12800000000000000000000]])
-"""
 
 def print_contest_information(chatId, contestId):
     contest = struct.get_contest_information(contestId)
@@ -118,7 +92,7 @@ def print_all_rating(chatId):
 @bot.message_handler(commands=["start"])
 def start_chat(message):
     menuKey = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    menuBut = types.KeyboardButton(text = "Меню")
+    menuBut = types.KeyboardButton(text="Меню")
     menuKey.add(menuBut)
 
     key = types.InlineKeyboardMarkup()
