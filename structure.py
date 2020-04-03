@@ -25,9 +25,10 @@ def get_solved_count(solved, upsolved):
 
 
 def get_contest_information(contestId):
-    standings = req.get_codeforces_contest_stadings(273749, True)
+    contestId = str(contestId)
+    standings = req.get_codeforces_contest_stadings(contestId, const.apis[contestId][0], const.apis[contestId][1], True)
     contestInformation = {}
-    contestInformation['name'] = req.get_contestName(contestId)
+    contestInformation['name'] = req.get_contestName(contestId, const.apis[contestId][0], const.apis[contestId][1])
 
     users = {}
     maxSolved = 1
@@ -76,7 +77,7 @@ def get_contest_information(contestId):
 
     contestInformation['users'] = users
 
-    status = req.get_codeforces_contest_status(273749)
+    status = req.get_codeforces_contest_status(contestId, const.apis[contestId][0], const.apis[contestId][1])
     try:
         for submission in range(len(status['result']) - 1, -1, -1):
             if status['result'][submission]['verdict'] == 'OK':
@@ -104,13 +105,17 @@ def get_first_three_place(contestId):
 
 def get_hq_contests():
     try:
-        hq_contest = req.get_codeforces_contest_list(True)
         contests = []
-        for contest in hq_contest['result']:
-            if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
-                contests.append(contest['id'])
+        apis = {}
+        for ind in range(2):
+            hq_contest = req.get_codeforces_contest_list(const.apiKey[ind], const.apiSecret[ind], True)
+            for contest in hq_contest['result']:
+                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
+                    contests.append(str(contest['id']))
+                    apis[str(contest['id'])] = [const.apiKey[ind], const.apiSecret[ind]]
         #print('O VSTAL')
-        return contests
+
+        return [contests, apis]
 
     except:
         print('CF UPAL')
@@ -118,8 +123,10 @@ def get_hq_contests():
 
 def take_contests():
     while True:
-        const.hq_contests = get_hq_contests()
-        time.sleep(300)
+        temp = get_hq_contests()
+        const.hq_contests = temp[0]
+        const.apis = temp[1]
+        time.sleep(30)
 
 def get_all_rating():
     hq_rating = {}
