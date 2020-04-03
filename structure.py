@@ -90,6 +90,8 @@ def get_contest_information(contestId):
         except:
             print("Trouble with status")
         return contestInformation
+    except:
+        print("Failed Contest Information")
 
 
 def get_first_three_place(contestId):
