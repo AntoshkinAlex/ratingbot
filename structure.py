@@ -80,7 +80,8 @@ def get_contest_information(contestId):
     status = req.get_codeforces_contest_status(contestId, const.apis[contestId][0], const.apis[contestId][1])
     try:
         for submission in range(len(status['result']) - 1, -1, -1):
-            if status['result'][submission]['verdict'] == 'OK':
+            name = get_username(status['result'][submission]['author']['members'][0]['handle'])
+            if status['result'][submission]['verdict'] == 'OK' and (name in const.handles):
                 contestInformation['firstSubmission'] = {}
                 contestInformation['firstSubmission']['name'] = get_username(status['result'][submission]['author']['members'][0]['handle'])
                 contestInformation['firstSubmission']['time'] = status['result'][submission]['relativeTimeSeconds'] // 60

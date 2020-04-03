@@ -21,6 +21,4 @@ handles = {
     'pugachev-hq': 'Дмитрий Пугачёв',
     'seleznev-hq': 'Виктор Селезнёв',
     'shevnin-hq': 'Даниил Шевнин',
-
-    'antoshkin-hq': 'lepeha'
 }
