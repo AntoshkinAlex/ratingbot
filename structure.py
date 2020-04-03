@@ -138,7 +138,7 @@ def take_contests():
         const.apis = temp[1]
         get_contest()
         get_all_rating()
-        time.sleep(10)
+        time.sleep(300)
 
 def get_contest():
     try:

@@ -24,7 +24,6 @@ def print_contests(chatId):
 
 def print_contest_information(chatId, contestId):
     try:
-        print(const.hq_contest_information)
         contest = const.hq_contest_information[contestId]['contest']
         contestTop = const.hq_contest_information[contestId]['contestTop']
         sortedRating = const.hq_contest_information[contestId]['sortedRating']
