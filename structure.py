@@ -3,6 +3,7 @@ from threading import Thread
 import time
 import const
 import operator
+import texttable as table
 
 def get_username(handle):
     return handle[handle.find("=") + 1 : ]
@@ -90,8 +91,8 @@ def get_contest_information(contestId):
         except:
             print("Trouble with status")
         return contestInformation
-    except:
-        print("Failed Contest Information")
+    except Exception as err:
+        print("Failed Contest Information", err)
 
 
 def get_first_three_place(contestId):
@@ -112,17 +113,17 @@ def get_first_three_place(contestId):
 
 def get_hq_contests():
     try:
-        contests = []
+        const.name_contests = {}
         apis = {}
         for ind in range(2):
             hq_contest = req.get_codeforces_contest_list(const.apiKey[ind], const.apiSecret[ind], True)
             for contest in hq_contest['result']:
                 if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
-                    contests.append(str(contest['id']))
+                    const.name_contests[contest['name']] = (str(contest['id']))
                     apis[str(contest['id'])] = [const.apiKey[ind], const.apiSecret[ind]]
         #print('O VSTAL')
 
-        return [contests, apis]
+        return [const.name_contests, apis]
 
     except:
         print('CF UPAL')
@@ -131,16 +132,36 @@ def get_hq_contests():
 def take_contests():
     while True:
         temp = get_hq_contests()
-        const.hq_contests = temp[0]
+        const.hq_contests = []
+        for id in const.name_contests:
+            const.hq_contests.append(const.name_contests[id])
         const.apis = temp[1]
-        time.sleep(300)
+        get_contest()
+        get_all_rating()
+        time.sleep(10)
+
+def get_contest():
+    try:
+        for contestId in const.hq_contests:
+            const.hq_contest_information[contestId] = {}
+            const.hq_contest_information[contestId]['contest'] = get_contest_information(contestId)
+            const.hq_contest_information[contestId]['contestTop'] = get_first_three_place(contestId)
+            #print(const.hq_contest_information)
+            const.hq_contest_information[contestId]['sortedRating'] = []
+            for user in const.hq_contest_information[contestId]['contest']['users']:
+                const.hq_contest_information[contestId]['sortedRating'].append(
+                    [const.hq_contest_information[contestId]['contest']['users'][user]['rating'], user]
+                )
+            const.hq_contest_information[contestId]['sortedRating'].sort()
+            const.hq_contest_information[contestId]['sortedRating'].reverse()
+    except:
+        print("Ошибка при взятии контеста")
 
 def get_all_rating():
     try:
         hq_rating = {}
         solved = {}
         upsolved = {}
-        hq_rating_information = {}
         for handle in const.handles.keys():
             hq_rating[handle] = 0
             solved[handle] = 0
@@ -158,11 +179,35 @@ def get_all_rating():
         hq_rating.reverse()
         for item in hq_rating:
             user = item[0]
-            hq_rating_information[user] = {}
-            hq_rating_information[user]['solved'] = solved[user]
-            hq_rating_information[user]['upsolved'] = upsolved[user]
-            hq_rating_information[user]['rating'] = item[1]
-        return hq_rating_information
+            const.hq_rating_information[user] = {}
+            const.hq_rating_information[user]['solved'] = solved[user]
+            const.hq_rating_information[user]['upsolved'] = upsolved[user]
+            const.hq_rating_information[user]['rating'] = item[1]
+        try:
+            print_rating = table.Texttable()
+            print_rating.set_deco(table.Texttable.HEADER)
+            print_rating.set_cols_align(["l", "c", "c"])
+            print_rating.set_cols_valign(["t", "t", "m"])
+            print_rating.set_cols_dtype(['t', 'i', 'i'])
+            print_rating.add_row(["Фамилия\n", "🏆\n", "Задачи\n"])
+            space = '  '
+        except:
+            print('Ошибка при выводе топа рейтинга')
+        try:
+            for index, user in enumerate(const.hq_rating_information):
+                userName = str(const.handles[user])
+                name = userName[userName.find(' ') + 1:]
+                if (index == 9):
+                    space = ' '
+                print_rating.add_row([str(index + 1) + space +
+                    name,
+                    str(const.hq_rating_information[user]['rating']),
+                    str(const.hq_rating_information[user]['solved'] + const.hq_rating_information[user]['upsolved'])
+                ])
+                const.all_rating = print_rating
+        except:
+            print("Не удалось получить общий рейтинг")
+
     except:
         print('Не удалось получить общий рейтинг')
 

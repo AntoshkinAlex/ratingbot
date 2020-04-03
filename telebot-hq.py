@@ -14,22 +14,20 @@ Thread1.start()
 
 def print_contests(chatId):
     key = types.InlineKeyboardMarkup()
-    for i in const.hq_contests:
-        contestName = req.get_contestName(i, const.apis[i][0], const.apis[i][1])
-        button = types.InlineKeyboardButton(text=contestName, callback_data='id' + str(i))
+    for i in const.name_contests:
+        contestName = i
+        id = const.name_contests[i]
+        button = types.InlineKeyboardButton(text=contestName, callback_data='id' + str(id))
         key.add(button)
     bot.send_message(chatId, "Выберите контест:", reply_markup=key)
 
 
 def print_contest_information(chatId, contestId):
     try:
-        contest = struct.get_contest_information(contestId)
-        contestTop = struct.get_first_three_place(contestId)
-        sortedRating = []
-        for user in contest['users']:
-            sortedRating.append([contest['users'][user]['rating'], user])
-        sortedRating.sort()
-        sortedRating.reverse()
+        print(const.hq_contest_information)
+        contest = const.hq_contest_information[contestId]['contest']
+        contestTop = const.hq_contest_information[contestId]['contestTop']
+        sortedRating = const.hq_contest_information[contestId]['sortedRating']
 
         rating = table.Texttable()
         rating.set_deco(table.Texttable.HEADER)
@@ -71,28 +69,7 @@ def print_contest_information(chatId, contestId):
 
 def print_all_rating(chatId):
     try:
-        rating = struct.get_all_rating()
-        print_rating = table.Texttable()
-        print_rating.set_deco(table.Texttable.HEADER)
-        print_rating.set_cols_align(["l", "c", "c"])
-        print_rating.set_cols_valign(["t", "t", "m"])
-        print_rating.set_cols_dtype(['t', 'i', 'i'])
-        print_rating.add_row(["Фамилия\n", "🏆\n", "Задачи\n"])
-        space = '  '
-    except:
-        print('Ошибка при выводе общего рейтинга')
-    try:
-        for index, user in enumerate(rating):
-            userName = str(const.handles[user])
-            name = userName[userName.find(' ') + 1 : ]
-            if (index == 9):
-                space = ' '
-            print_rating.add_row([str(index + 1) + space +
-                                  name,
-                                  str(rating[user]['rating']),
-                                  str(rating[user]['solved'] + rating[user]['upsolved'])
-                                  ])
-        bot.send_message(chatId, "<b>" + "Общий рейтинг:" + "</b>\n\n<pre>" + print_rating.draw() + "</pre>", parse_mode="html")
+        bot.send_message(chatId, "<b>" + "Общий рейтинг:" + "</b>\n\n<pre>" + const.all_rating.draw() + "</pre>", parse_mode="html")
     except:
         bot.send_message(chatId, 'Произошла ошибка')
 
