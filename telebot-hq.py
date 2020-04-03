@@ -15,7 +15,7 @@ Thread1.start()
 def print_contests(chatId):
     key = types.InlineKeyboardMarkup()
     for i in const.hq_contests:
-        contestName = req.get_contestName(i)
+        contestName = req.get_contestName(i, const.apis[i][0], const.apis[i][1])
         button = types.InlineKeyboardButton(text=contestName, callback_data='id' + str(i))
         key.add(button)
     bot.send_message(chatId, "Выберите контест:", reply_markup=key)

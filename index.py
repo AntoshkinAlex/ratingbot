@@ -3,9 +3,6 @@ import time
 from pip._vendor import requests
 import const
 
-apiKey = const.apiKey
-apiSecret = const.apiSecret
-
 count_response = 0
 def get_cf_response(url):
     global count_response
@@ -17,7 +14,7 @@ def get_cf_response(url):
     return r.json()
 
 
-def get_codeforces_contest_stadings(contestId, showUnofficial=False):
+def get_codeforces_contest_stadings(contestId, apiKey, apiSecret, showUnofficial=False):
     if showUnofficial:
         showUnofficial = 'true'
     else:
@@ -32,7 +29,7 @@ def get_codeforces_contest_stadings(contestId, showUnofficial=False):
     return get_cf_response(url)
 
 
-def get_codeforces_contest_status(contestId):
+def get_codeforces_contest_status(contestId, apiKey, apiSecret):
     t = int(time.time())
     s = bytes("hqhqhq/contest.status?apiKey="+apiKey+"&contestId="+str(contestId)+"&time="+str(t)+"#"+apiSecret, 'utf-8')
     h = hashlib.sha512(s).hexdigest()
@@ -43,7 +40,7 @@ def get_codeforces_contest_status(contestId):
     return get_cf_response(url)
 
 
-def get_codeforces_contest_list(gym=False):
+def get_codeforces_contest_list(apiKey, apiSecret, gym=False):
     if gym:
         gym = 'true'
     else:
@@ -59,9 +56,9 @@ def get_codeforces_contest_list(gym=False):
     return get_cf_response(url)
 
 
-def get_contestName(contestId):
+def get_contestName(contestId, apiKey, apiSecret):
     try:
-        standings = get_codeforces_contest_stadings(contestId)
+        standings = get_codeforces_contest_stadings(contestId, apiKey, apiSecret)
         return standings['result']['contest']['name']
     except:
         return None
