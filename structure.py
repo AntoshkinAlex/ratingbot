@@ -113,16 +113,16 @@ def get_first_three_place(contestId):
 
 def get_hq_contests():
     try:
-        const.name_contests = {}
+        name_contests = {}
         apis = {}
         for ind in range(2):
             hq_contest = req.get_codeforces_contest_list(const.apiKey[ind], const.apiSecret[ind], True)
             for contest in hq_contest['result']:
                 if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
-                    const.name_contests[contest['name']] = (str(contest['id']))
+                    name_contests[contest['name']] = (str(contest['id']))
                     apis[str(contest['id'])] = [const.apiKey[ind], const.apiSecret[ind]]
         #print('O VSTAL')
-
+        const.name_contests = name_contests
         return [const.name_contests, apis]
 
     except:
@@ -132,9 +132,10 @@ def get_hq_contests():
 def take_contests():
     while True:
         temp = get_hq_contests()
-        const.hq_contests = []
+        hq_contests = []
         for id in const.name_contests:
-            const.hq_contests.append(const.name_contests[id])
+            hq_contests.append(const.name_contests[id])
+        const.hq_contests = hq_contests
         const.apis = temp[1]
         get_contest()
         get_all_rating()
@@ -142,18 +143,19 @@ def take_contests():
 
 def get_contest():
     try:
+        hq_contest_information = {}
         for contestId in const.hq_contests:
-            const.hq_contest_information[contestId] = {}
-            const.hq_contest_information[contestId]['contest'] = get_contest_information(contestId)
-            const.hq_contest_information[contestId]['contestTop'] = get_first_three_place(contestId)
-            #print(const.hq_contest_information)
-            const.hq_contest_information[contestId]['sortedRating'] = []
-            for user in const.hq_contest_information[contestId]['contest']['users']:
-                const.hq_contest_information[contestId]['sortedRating'].append(
-                    [const.hq_contest_information[contestId]['contest']['users'][user]['rating'], user]
+            hq_contest_information[contestId] = {}
+            hq_contest_information[contestId]['contest'] = get_contest_information(contestId)
+            hq_contest_information[contestId]['contestTop'] = get_first_three_place(contestId)
+            hq_contest_information[contestId]['sortedRating'] = []
+            for user in hq_contest_information[contestId]['contest']['users']:
+                hq_contest_information[contestId]['sortedRating'].append(
+                    [hq_contest_information[contestId]['contest']['users'][user]['rating'], user]
                 )
-            const.hq_contest_information[contestId]['sortedRating'].sort()
-            const.hq_contest_information[contestId]['sortedRating'].reverse()
+            hq_contest_information[contestId]['sortedRating'].sort()
+            hq_contest_information[contestId]['sortedRating'].reverse()
+        const.hq_contest_information = hq_contest_information
     except:
         print("Ошибка при взятии контеста")
 
