@@ -3,6 +3,7 @@ from threading import Thread
 import time
 import const
 import operator
+from functools import cmp_to_key
 
 def get_username(handle):
     return handle[handle.find("=") + 1 : ]
@@ -103,9 +104,16 @@ def get_first_three_place(contestId):
             break
     return firstPlaces
 
+def comparator(contestId1, contestId2):
+    contestName = req.get_contestName(contestId1, const.apis[str(contestId1)][0], const.apis[str(contestId1)][1])
+    contestNum1 = int(contestName[15 : ])
+    contestName = req.get_contestName(contestId2, const.apis[str(contestId2)][0], const.apis[str(contestId2)][1])
+    contestNum2 = int(contestName[15 : ])
+    return contestNum1 - contestNum2
+
 
 def get_hq_contests():
-    try:
+    #try:
         contests = []
         apis = {}
         for ind in range(2):
@@ -115,11 +123,10 @@ def get_hq_contests():
                     contests.append(str(contest['id']))
                     apis[str(contest['id'])] = [const.apiKey[ind], const.apiSecret[ind]]
         #print('O VSTAL')
-
         return [contests, apis]
 
-    except:
-        print('CF UPAL')
+    #except:
+     #   print('CF UPAL')
 
 
 def take_contests():
@@ -127,7 +134,10 @@ def take_contests():
         temp = get_hq_contests()
         const.hq_contests = temp[0]
         const.apis = temp[1]
+        const.hq_contests = sorted(const.hq_contests, key=cmp_to_key(comparator))
         time.sleep(30)
+
+take_contests()
 
 def get_all_rating():
     hq_rating = {}
