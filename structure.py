@@ -131,15 +131,19 @@ def get_hq_contests():
 
 def take_contests():
     while True:
-        temp = get_hq_contests()
-        hq_contests = []
-        for id in const.name_contests:
-            hq_contests.append(const.name_contests[id])
-        const.hq_contests = hq_contests
-        const.apis = temp[1]
-        get_contest()
-        get_all_rating()
-        time.sleep(300)
+        try:
+            temp = get_hq_contests()
+            hq_contests = []
+            for id in const.name_contests:
+                hq_contests.append(const.name_contests[id])
+            const.hq_contests = hq_contests
+            const.apis = temp[1]
+            get_contest()
+            get_all_rating()
+            time.sleep(300)
+        except:
+            time.sleep(180)
+
 
 def get_contest():
     try:
