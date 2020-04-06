@@ -111,10 +111,13 @@ def get_first_three_place(contestId):
     except:
         print('Не удалось взять топ 3')
 
+
 def comparator(contestId1, contestId2):
     contestName = req.get_contestName(contestId1, const.apis[str(contestId1)][0], const.apis[str(contestId1)][1])
+    const.name_id_contests[contestId1] = contestName
     contestNum1 = int(contestName[15 : ])
     contestName = req.get_contestName(contestId2, const.apis[str(contestId2)][0], const.apis[str(contestId2)][1])
+    const.name_id_contests[contestId2] = contestName
     contestNum2 = int(contestName[15 : ])
     return contestNum1 - contestNum2
 
@@ -131,8 +134,8 @@ def get_hq_contests():
                     apis[str(contest['id'])] = [const.apiKey[ind], const.apiSecret[ind]]
         #print('O VSTAL')
         const.name_contests = name_contests
-        return [const.name_contests, apis]
-
+        const.apis = apis
+        return [const.name_contests, const.apis]
     except:
         print('CF UPAL')
 
@@ -144,8 +147,7 @@ def take_contests():
             hq_contests = []
             for id in const.name_contests:
                 hq_contests.append(const.name_contests[id])
-            const.hq_contests = hq_contests
-            const.hq_contests = sorted(const.hq_contests, key=cmp_to_key(comparator))
+            const.hq_contests = sorted(hq_contests, key=cmp_to_key(comparator))
             const.apis = temp[1]
             get_contest()
             get_all_rating()
@@ -170,7 +172,7 @@ def get_contest():
             hq_contest_information[contestId]['sortedRating'].reverse()
         const.hq_contest_information = hq_contest_information
     except:
-        print("Ошибка при взятии контеста")
+        print('Ошибка при получении информации о контесте')
 
 def get_all_rating():
     try:

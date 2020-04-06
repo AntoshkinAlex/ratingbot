@@ -5,6 +5,7 @@ apiSecret = ["1435eb83678671d1c94ef43e9ded1e5e719501ba", "b8b59bae8bda9bec15c02f
 authors = ['antoshkin', 'aafonin']
 hq_contests = []
 apis = {}
+name_id_contests = {}
 hq_rating_information = {}
 all_rating = table.Texttable()
 name_contests = {}

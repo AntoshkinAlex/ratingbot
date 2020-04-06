@@ -13,13 +13,17 @@ Thread1 = Thread(target=struct.take_contests)
 Thread1.start()
 
 def print_contests(chatId):
-    key = types.InlineKeyboardMarkup()
-    for i in const.name_contests:
-        contestName = i
-        id = const.name_contests[i]
-        button = types.InlineKeyboardButton(text=contestName, callback_data='id' + str(id))
-        key.add(button)
-    bot.send_message(chatId, "Выберите контест:", reply_markup=key)
+    try:
+        key = types.InlineKeyboardMarkup()
+        for i in const.hq_contests:
+            contestName = const.name_id_contests[i]
+            id = i
+            button = types.InlineKeyboardButton(text=contestName, callback_data='id' + str(id))
+            key.add(button)
+        bot.send_message(chatId, "Выберите контест:", reply_markup=key)
+    except:
+        bot.send_message(chatId, "Произошла ошибка")
+        print('Произошла ошибка')
 
 
 def print_contest_information(chatId, contestId):
@@ -45,7 +49,8 @@ def print_contest_information(chatId, contestId):
                                   str(contest['users'][item[1]]['rating']) +
                                   " (" + str(contest['users'][item[1]]['solvedCount']) + "/" + str(contest['users'][item[1]]['upsolvedCount']) + ")"
                                   ])
-    except:
+    except Exception as err:
+        print(err)
         print('Ошибка при выводе информации о контесте')
 
     try:
