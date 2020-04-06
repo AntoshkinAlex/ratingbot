@@ -6,7 +6,7 @@ import const
 count_response = 0
 def get_cf_response(url):
     global count_response
-    if count_response==5:
+    if count_response == 5:
         count_response = 0
         time.sleep(2)
     r = requests.get(url)
