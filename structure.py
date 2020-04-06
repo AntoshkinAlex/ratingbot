@@ -4,6 +4,7 @@ import time
 import const
 import operator
 import texttable as table
+from functools import cmp_to_key
 
 def get_username(handle):
     return handle[handle.find("=") + 1 : ]
@@ -110,6 +111,13 @@ def get_first_three_place(contestId):
     except:
         print('Не удалось взять топ 3')
 
+def comparator(contestId1, contestId2):
+    contestName = req.get_contestName(contestId1, const.apis[str(contestId1)][0], const.apis[str(contestId1)][1])
+    contestNum1 = int(contestName[15 : ])
+    contestName = req.get_contestName(contestId2, const.apis[str(contestId2)][0], const.apis[str(contestId2)][1])
+    contestNum2 = int(contestName[15 : ])
+    return contestNum1 - contestNum2
+
 
 def get_hq_contests():
     try:
@@ -137,6 +145,7 @@ def take_contests():
             for id in const.name_contests:
                 hq_contests.append(const.name_contests[id])
             const.hq_contests = hq_contests
+            const.hq_contests = sorted(const.hq_contests, key=cmp_to_key(comparator))
             const.apis = temp[1]
             get_contest()
             get_all_rating()
