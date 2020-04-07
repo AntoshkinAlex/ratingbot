@@ -129,7 +129,8 @@ def get_hq_contests():
         for ind in range(2):
             hq_contest = req.get_codeforces_contest_list(const.apiKey[ind], const.apiSecret[ind], True)
             for contest in hq_contest['result']:
-                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
+                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0\
+                        and contest['phase'] == 'FINISHED':
                     name_contests[contest['name']] = (str(contest['id']))
                     apis[str(contest['id'])] = [const.apiKey[ind], const.apiSecret[ind]]
         #print('O VSTAL')
