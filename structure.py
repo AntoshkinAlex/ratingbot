@@ -36,6 +36,7 @@ def get_contest_information(contestId):
         users = {}
         maxSolved = 1
         problemCount = len(standings['result']['problems'])
+        contestInformation['problemCount'] = problemCount
 
         for user in standings['result']['rows']:
             userName = user['party']['members'][0]['handle']
@@ -151,10 +152,70 @@ def take_contests():
             const.hq_contests = sorted(hq_contests, key=cmp_to_key(comparator))
             const.apis = temp[1]
             get_contest()
+            get_user_infomation()
             get_all_rating()
             time.sleep(300)
         except:
             time.sleep(180)
+
+
+def get_user_infomation():
+    try:
+        user_information = {}
+        contest = {}
+        for contestId in const.hq_contests:
+            contest[contestId] = {}
+            contest[contestId] = get_contest_information(contestId)
+        for user in const.handles:
+            user_information[user] = {}
+            user_information[user]['name'] = const.handles[user]
+            user_information[user]['achievements'] = ''
+            unsolvedCount = 0
+            solvedCount = 0
+            unsolvedCountLast = 0
+
+            for (index, contestId) in enumerate(contest):
+                if user in contest[contestId]['users']:
+                    unsolvedCount += contest[contestId]['problemCount'] - \
+                        (contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount'])
+                    solvedCount += contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount']
+                    rank = contest[contestId]['users'][user]['rank']
+                    if rank == 1:
+                        user_information[user]['achievements'] += "🥇"
+                    elif rank == 2:
+                        user_information[user]['achievements'] += "🥈"
+                    elif rank == 3:
+                        user_information[user]['achievements'] += "🥉"
+                    if len(const.hq_contests) - index <= 5:
+                        unsolvedCountLast += contest[contestId]['problemCount'] - \
+                        (contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount'])
+                else:
+                    unsolvedCount += contest[contestId]['problemCount']
+                    if len(const.hq_contests) - index <= 5:
+                        unsolvedCountLast += contest[contestId]['problemCount']
+            if user_information[user]['achievements'] == '':
+                user_information[user]['achievements'] = 'Пока тут ничего нет :('
+            user_information[user]['solved'] = solvedCount
+            user_information[user]['unsolved'] = unsolvedCount
+            user_information[user]['activity'] = ''
+            activity = unsolvedCountLast
+            if activity <= 1:
+                user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
+            elif activity <= 3:
+                user_information[user]['activity'] = '🟢 Высокий уровень активности'
+            elif activity <= 5:
+                user_information[user]['activity'] = '🟡 Средний уровень активности'
+            elif activity <= 7:
+                user_information[user]['activity'] = '🟠 Низкий уровень активности'
+            else:
+                user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
+
+            user_information[user]['name'] += ' ' + user_information[user]['activity'][0]
+
+        const.user_information = user_information
+    except:
+        print('Не удалось взять личную информацию пользователей')
+
 
 
 def get_contest():
@@ -174,6 +235,7 @@ def get_contest():
         const.hq_contest_information = hq_contest_information
     except:
         print('Ошибка при получении информации о контесте')
+
 
 def get_all_rating():
     try:

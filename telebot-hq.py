@@ -25,6 +25,19 @@ def print_contests(chatId):
         bot.send_message(chatId, "Произошла ошибка")
         print('Произошла ошибка')
 
+def print_users(chatId):
+    try:
+        key = types.InlineKeyboardMarkup()
+        for i in const.handles:
+            userInformation = const.user_information[i]
+            id = i
+            button = types.InlineKeyboardButton(text=userInformation['name'], callback_data='login: ' + str(id))
+            key.add(button)
+        bot.send_message(chatId, "Выберите пользователя:", reply_markup=key)
+    except:
+        bot.send_message(chatId, "Произошла ошибка")
+        print('Произошла ошибка')
+
 
 def print_contest_information(chatId, contestId):
     try:
@@ -71,6 +84,21 @@ def print_contest_information(chatId, contestId):
         bot.send_message(chatId, "Произошла ошибка")
 
 
+def print_user_information(chatId, user):
+    try:
+        userInformation = const.user_information[user]
+        bot.send_message(chatId, "<b>" + userInformation['name'] + ":</b>\n\n" +
+                "Активность:\n" + userInformation['activity'] + "\n\n" +
+                "Достижения:\n" + userInformation['achievements'] + "\n\n" +
+                "Решено задач: " + str(userInformation['solved']) + "\n" +
+                "Не решено задач: " + str(userInformation['unsolved']) + "\n",
+                parse_mode="html")
+
+    except:
+        print('Ошибка при выводе личной информации')
+        bot.send_message(chatId, "Произошла ошибка")
+
+
 def print_all_rating(chatId):
     try:
         bot.send_message(chatId, "<b>" + "Общий рейтинг:" + "</b>\n\n<pre>" + const.all_rating.draw() + "</pre>", parse_mode="html")
@@ -87,7 +115,9 @@ def start_chat(message):
     key = types.InlineKeyboardMarkup()
     but_1 = types.InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
     but_2 = types.InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
+    but_3 = types.InlineKeyboardButton(text="Личная информация", callback_data="getuser")
     key.add(but_1, but_2)
+    key.add(but_3)
 
     bot.send_message(message.chat.id, "Привет", reply_markup=menuKey)
     bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
@@ -99,7 +129,9 @@ def continue_chat(message):
         key = types.InlineKeyboardMarkup()
         but_1 = types.InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
         but_2 = types.InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
+        but_3 = types.InlineKeyboardButton(text="Личная информация", callback_data="getuser")
         key.add(but_1, but_2)
+        key.add(but_3)
         bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
 
 @bot.callback_query_handler(func=lambda text:True)
@@ -110,6 +142,10 @@ def callback_text(text):
         print_contests(text.message.chat.id)
     elif message == "getrating":
         print_all_rating(text.message.chat.id)
+    elif message == "getuser":
+        print_users(text.message.chat.id)
+    elif message.find('login: ') != -1:
+        print_user_information(text.message.chat.id, message[message.find('login: ') + 7: len(message)])
     elif message.find('id') != -1:
         print_contest_information(text.message.chat.id, message[message.find('id') + 2 : len(message)])
 

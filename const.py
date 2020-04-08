@@ -10,23 +10,24 @@ hq_rating_information = {}
 all_rating = table.Texttable()
 name_contests = {}
 hq_contest_information = {}
+user_information = {}
 
 handles = {
-    'vasil-hq': 'Сергей Василянский',
     'afonkin-hq': 'Павел Афонькин',
     'bazilov-hq': 'Дмитрий Базилов',
+    'vasil-hq': 'Сергей Василянский',
+    'galuza-hq': 'Владислав Галуза',
+    'guryanov-hq': 'Максим Гурьянов',
     'elefteriadi-hq': 'Аркадий Елефтериади',
     'eremin-hq': 'Владимир Ерёмин',
     'filatov-hq': 'Юрий Филатов',
-    'galuza-hq': 'Владислав Галуза',
-    'guryanov-hq': 'Максим Гурьянов',
-    'tutichkin-hq': 'Семён Тютичкин',
-    'solov-hq': 'Полина Соловьёва',
-    'khadzakos-hq': 'Николай Хадзакос',
-    'movsesyan-hq': 'Владимир Мовсесян',
     'movzalevskaya-hq': 'Виталия Мовзалевская',
+    'movsesyan-hq': 'Владимир Мовсесян',
     'povol-hq': 'Роман Поволоцкий',
     'pugachev-hq': 'Дмитрий Пугачёв',
     'seleznev-hq': 'Виктор Селезнёв',
+    'solov-hq': 'Полина Соловьёва',
+    'tutichkin-hq': 'Семён Тютичкин',
+    'khadzakos-hq': 'Николай Хадзакос',
     'shevnin-hq': 'Даниил Шевнин',
 }
