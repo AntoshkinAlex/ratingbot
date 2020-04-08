@@ -195,6 +195,9 @@ def get_all_rating():
 
         hq_rating = sorted(hq_rating.items(), key=operator.itemgetter(1))
         hq_rating.reverse()
+
+        const.hq_rating_information = {}
+        
         for item in hq_rating:
             user = item[0]
             const.hq_rating_information[user] = {}
