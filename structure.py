@@ -172,7 +172,8 @@ def get_user_infomation():
             user_information[user]['achievements'] = ''
             unsolvedCount = 0
             solvedCount = 0
-            unsolvedCountLast = 0
+            solvedCountLast = 0
+            allCount = 0
 
             for (index, contestId) in enumerate(contest):
                 if user in contest[contestId]['users']:
@@ -187,28 +188,40 @@ def get_user_infomation():
                     elif rank == 3:
                         user_information[user]['achievements'] += "🥉"
                     if len(const.hq_contests) - index <= 5:
-                        unsolvedCountLast += contest[contestId]['problemCount'] - \
-                        (contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount'])
+                        solvedCountLast += contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount']
+                        allCount += contest[contestId]['problemCount']
                 else:
                     unsolvedCount += contest[contestId]['problemCount']
                     if len(const.hq_contests) - index <= 5:
-                        unsolvedCountLast += contest[contestId]['problemCount']
+                        allCount += contest[contestId]['problemCount']
             if user_information[user]['achievements'] == '':
                 user_information[user]['achievements'] = 'Пока тут ничего нет :('
             user_information[user]['solved'] = solvedCount
             user_information[user]['unsolved'] = unsolvedCount
             user_information[user]['activity'] = ''
-            activity = unsolvedCountLast
-            if activity <= 1:
-                user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
-            elif activity <= 3:
-                user_information[user]['activity'] = '🟢 Высокий уровень активности'
-            elif activity <= 5:
-                user_information[user]['activity'] = '🟡 Средний уровень активности'
-            elif activity <= 7:
-                user_information[user]['activity'] = '🟠 Низкий уровень активности'
+            activity = solvedCountLast / allCount * 100
+            if user in const.first_course:
+                if activity >= 70:
+                    user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
+                elif activity >= 50:
+                    user_information[user]['activity'] = '🟢 Высокий уровень активности'
+                elif activity >= 40:
+                    user_information[user]['activity'] = '🟡 Средний уровень активности'
+                elif activity >= 30:
+                    user_information[user]['activity'] = '🟠 Низкий уровень активности'
+                else:
+                    user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
             else:
-                user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
+                if activity >= 90:
+                    user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
+                elif activity >= 75:
+                    user_information[user]['activity'] = '🟢 Высокий уровень активности'
+                elif activity >= 60:
+                    user_information[user]['activity'] = '🟡 Средний уровень активности'
+                elif activity >= 50:
+                    user_information[user]['activity'] = '🟠 Низкий уровень активности'
+                else:
+                    user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
 
             user_information[user]['name'] += ' ' + user_information[user]['activity'][0]
 

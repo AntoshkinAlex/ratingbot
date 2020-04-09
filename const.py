@@ -31,3 +31,12 @@ handles = {
     'khadzakos-hq': 'Николай Хадзакос',
     'shevnin-hq': 'Даниил Шевнин',
 }
+
+first_course = {
+    'vasil-hq': 'Сергей Василянский',
+    'galuza-hq': 'Владислав Галуза',
+    'guryanov-hq': 'Максим Гурьянов',
+    'pugachev-hq': 'Дмитрий Пугачёв',
+    'khadzakos-hq': 'Николай Хадзакос',
+    'shevnin-hq': 'Даниил Шевнин',
+}
