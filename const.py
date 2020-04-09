@@ -36,6 +36,7 @@ first_course = {
     'vasil-hq': 'Сергей Василянский',
     'galuza-hq': 'Владислав Галуза',
     'guryanov-hq': 'Максим Гурьянов',
+    'filatov-hq': 'Юрий Филатов',
     'pugachev-hq': 'Дмитрий Пугачёв',
     'khadzakos-hq': 'Николай Хадзакос',
     'shevnin-hq': 'Даниил Шевнин',
