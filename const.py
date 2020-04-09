@@ -20,7 +20,6 @@ handles = {
     'guryanov-hq': 'Максим Гурьянов',
     'elefteriadi-hq': 'Аркадий Елефтериади',
     'eremin-hq': 'Владимир Ерёмин',
-    'filatov-hq': 'Юрий Филатов',
     'movzalevskaya-hq': 'Виталия Мовзалевская',
     'movsesyan-hq': 'Владимир Мовсесян',
     'povol-hq': 'Роман Поволоцкий',
@@ -28,6 +27,7 @@ handles = {
     'seleznev-hq': 'Виктор Селезнёв',
     'solov-hq': 'Полина Соловьёва',
     'tutichkin-hq': 'Семён Тютичкин',
+    'filatov-hq': 'Юрий Филатов',
     'khadzakos-hq': 'Николай Хадзакос',
     'shevnin-hq': 'Даниил Шевнин',
 }
