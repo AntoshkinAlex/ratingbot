@@ -124,7 +124,7 @@ def start_chat(message):
 
 @bot.message_handler(content_types=["text"])
 def continue_chat(message):
-    print(str(message.from_user.username) + ' ' + str(message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))
+    print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))
     if (message.text == "Меню"):
         key = types.InlineKeyboardMarkup()
         but_1 = types.InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
