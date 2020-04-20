@@ -137,7 +137,7 @@ def continue_chat(message):
 @bot.callback_query_handler(func=lambda text:True)
 def callback_text(text):
     message = text.data
-    print(str(text.from_user.username) + ' ' + str(text.from_user.first_name) + ' ' + str(text.from_user.last_name)+ ': ' + str(message))
+    print(str(message.chat.id) + ' ' + str(text.from_user.username) + ' ' + str(text.from_user.first_name) + ' ' + str(text.from_user.last_name)+ ': ' + str(message))
     if message == "getcontest":
         print_contests(text.message.chat.id)
     elif message == "getrating":
