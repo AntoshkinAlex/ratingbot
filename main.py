@@ -6,11 +6,10 @@ import const
 from telebot import types
 import texttable as table
 
-TOKEN = "1108350056:AAGg7QZA6lABP8L3FPfYvTU4_WZJh5Rv9ck"
-bot = telebot.TeleBot(TOKEN)
-
+bot = const.bot
 Thread1 = Thread(target=struct.take_contests)
 Thread1.start()
+
 
 def print_contests(chatId):
     try:
@@ -122,6 +121,7 @@ def start_chat(message):
     bot.send_message(message.chat.id, "Привет", reply_markup=menuKey)
     bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
 
+
 @bot.message_handler(content_types=["text"])
 def continue_chat(message):
     print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))
@@ -133,6 +133,14 @@ def continue_chat(message):
         key.add(but_1, but_2)
         key.add(but_3)
         bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
+    elif message.text.find('/all ') != -1 and str(message.chat.id) in const.admins:
+        for user in const.users:
+            bot.send_message(user, message.text[message.text.find('/all ') + 5 : len(message.text)])
+    elif message.text.find('/user ') != -1 and str(message.chat.id) in const.admins:
+        for user in const.users:
+            if message.text.find(const.users[user]) != -1:
+                bot.send_message(user, message.text[message.text.find('/user ') + 7 + len(const.users[user]) : len(message.text)])
+
 
 @bot.callback_query_handler(func=lambda text:True)
 def callback_text(text):

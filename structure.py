@@ -6,6 +6,8 @@ import operator
 import texttable as table
 from functools import cmp_to_key
 
+bot = const.bot
+
 def get_username(handle):
     return handle[handle.find("=") + 1 : ]
 
@@ -122,6 +124,13 @@ def comparator(contestId1, contestId2):
     contestNum2 = int(contestName[15 : ])
     return contestNum1 - contestNum2
 
+def good_luck():
+    for user in const.users:
+        bot.send_message(user, "Бот Сашка желает тебе удачи на контесте! 🏆")
+
+def reminder():
+    for user in const.users:
+        bot.send_message(user, "Бот Сашка напоминает вам о том, что до начала контеста осталось меньше 17 часов! 🖥")
 
 def get_hq_contests():
     try:
@@ -134,6 +143,14 @@ def get_hq_contests():
                         and contest['phase'] == 'FINISHED':
                     name_contests[contest['name']] = (str(contest['id']))
                     apis[str(contest['id'])] = [const.apiKey[ind], const.apiSecret[ind]]
+                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0\
+                        and contest['relativeTimeSeconds'] >= -600 and contest['phase'] == 'BEFORE' and not(contest['id'] in const.goodluck):
+                    const.goodluck.append(contest['id'])
+                    good_luck()
+                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0\
+                        and contest['relativeTimeSeconds'] >= -61200 and contest['phase'] == 'BEFORE' and not(contest['id'] in const.reminder):
+                    const.reminder.append(contest['id'])
+                    reminder()
         #print('O VSTAL')
         const.name_contests = name_contests
         const.apis = apis
@@ -156,7 +173,7 @@ def take_contests():
             get_all_rating()
             time.sleep(300)
         except:
-            time.sleep(180)
+            time.sleep(300)
 
 
 def get_user_infomation():

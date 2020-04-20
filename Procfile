@@ -1,1 +1,1 @@
-worker: python3 telebot-hq.py
+worker: python3 main.py
