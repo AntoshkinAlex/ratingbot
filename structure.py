@@ -201,24 +201,24 @@ def get_user_infomation():
             user_information[user]['activity'] = ''
             activity = solvedCountLast / allCount * 100
             if user in const.first_course:
-                if activity >= 70:
+                if activity >= 75:
                     user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
-                elif activity >= 50:
+                elif activity >= 65:
                     user_information[user]['activity'] = '🟢 Высокий уровень активности'
-                elif activity >= 40:
+                elif activity >= 57:
                     user_information[user]['activity'] = '🟡 Средний уровень активности'
-                elif activity >= 30:
+                elif activity >= 50:
                     user_information[user]['activity'] = '🟠 Низкий уровень активности'
                 else:
                     user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
             else:
-                if activity >= 90:
+                if activity >= 95:
                     user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
-                elif activity >= 75:
+                elif activity >= 85:
                     user_information[user]['activity'] = '🟢 Высокий уровень активности'
-                elif activity >= 60:
+                elif activity >= 70:
                     user_information[user]['activity'] = '🟡 Средний уровень активности'
-                elif activity >= 50:
+                elif activity >= 60:
                     user_information[user]['activity'] = '🟠 Низкий уровень активности'
                 else:
                     user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
