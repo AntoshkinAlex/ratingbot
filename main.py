@@ -140,6 +140,7 @@ def continue_chat(message):
         for user in const.users:
             if message.text.find(const.users[user]) != -1:
                 bot.send_message(user, message.text[message.text.find('/user ') + 7 + len(const.users[user]) : len(message.text)])
+                bot.send_message('374683082', 'Доставлено')
 
 
 @bot.callback_query_handler(func=lambda text:True)
