@@ -220,11 +220,11 @@ def get_user_infomation():
             if user in const.first_course:
                 if activity >= 75:
                     user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
-                elif activity >= 65:
+                elif activity >= 69:
                     user_information[user]['activity'] = '🟢 Высокий уровень активности'
-                elif activity >= 57:
+                elif activity >= 62:
                     user_information[user]['activity'] = '🟡 Средний уровень активности'
-                elif activity >= 50:
+                elif activity >= 57:
                     user_information[user]['activity'] = '🟠 Низкий уровень активности'
                 else:
                     user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
@@ -233,9 +233,9 @@ def get_user_infomation():
                     user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
                 elif activity >= 85:
                     user_information[user]['activity'] = '🟢 Высокий уровень активности'
-                elif activity >= 70:
+                elif activity >= 75:
                     user_information[user]['activity'] = '🟡 Средний уровень активности'
-                elif activity >= 60:
+                elif activity >= 67:
                     user_information[user]['activity'] = '🟠 Низкий уровень активности'
                 else:
                     user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
