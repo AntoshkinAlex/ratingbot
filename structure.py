@@ -216,6 +216,8 @@ def get_user_infomation():
             user_information[user]['solved'] = solvedCount
             user_information[user]['unsolved'] = unsolvedCount
             user_information[user]['activity'] = ''
+            user_information[user]['solvedLast'] = solvedCountLast
+            user_information[user]['allLast'] = allCount
             activity = solvedCountLast / allCount * 100
             if user in const.first_course:
                 if activity >= 75:
@@ -234,7 +236,7 @@ def get_user_infomation():
                 elif activity >= 85:
                     user_information[user]['activity'] = '🟢 Высокий уровень активности'
                 elif activity >= 75:
-                    user_information[user]['activity'] = '🟡 Средний уровень активности'
+                    user_information[user]['activity'] = '🟡 Средний≥д уровень активности'
                 elif activity >= 67:
                     user_information[user]['activity'] = '🟠 Низкий уровень активности'
                 else:
