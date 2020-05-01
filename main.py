@@ -91,9 +91,9 @@ def print_user_information(chatId, user):
                 "Достижения:\n" + userInformation['achievements'] + "\n\n" +
                 "Решено задач: " + str(userInformation['solved']) + "\n" +
                 "Не решено задач: " + str(userInformation['unsolved']) + "\n\n" +
-                "За последние 5 тренировок вы решили: \n" + str(userInformation[user]['solvedLast']) + " " +
-                 str(struct.declension(userInformation[user]['solvedLast'], "задачу", "задачи", "задач")) + " из " +
-                         str(userInformation[user]['allLast']) + "\n",
+                "За последние 5 тренировок вы решили: \n" + str(userInformation['solvedLast']) + " " +
+                 str(struct.declension(userInformation['solvedLast'], "задачу", "задачи", "задач")) + " из " +
+                         str(userInformation['allLast']) + "\n",
                 parse_mode="html")
     except:
         print('Ошибка при выводе личной информации')
