@@ -25,6 +25,7 @@ handles = {
     'guryanov-hq': 'Максим Гурьянов',
     'movzalevskaya-hq': 'Виталия Мовзалевская',
     'movsesyan-hq': 'Владимир Мовсесян',
+    'nazarov-hq': 'Аркадий Назаров',
     'povol-hq': 'Роман Поволоцкий',
     'pugachev-hq': 'Дмитрий Пугачёв',
     'seleznev-hq': 'Виктор Селезнёв',
@@ -32,7 +33,7 @@ handles = {
     'tutichkin-hq': 'Семён Тютичкин',
     'filatov-hq': 'Юрий Филатов',
     'khadzakos-hq': 'Николай Хадзакос',
-    'shevnin-hq': 'Даниил Шевнин',
+    'shevnin-hq': 'Даниил Шевнин'
 }
 
 admins = [
@@ -66,6 +67,7 @@ first_course = {
     'guryanov-hq': 'Максим Гурьянов',
     'filatov-hq': 'Юрий Филатов',
     'pugachev-hq': 'Дмитрий Пугачёв',
+    'nazarov-hq': 'Аркадий Назаров',
     'khadzakos-hq': 'Николай Хадзакос',
     'shevnin-hq': 'Даниил Шевнин',
 }
