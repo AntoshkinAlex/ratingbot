@@ -243,6 +243,7 @@ def get_user_infomation():
                     user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
 
             user_information[user]['name'] += ' ' + user_information[user]['activity'][0]
+            user_information[user]['percent'] = activity
 
         const.user_information = user_information
     except:

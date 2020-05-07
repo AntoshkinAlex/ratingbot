@@ -93,7 +93,8 @@ def print_user_information(chatId, user):
                 "Не решено задач: " + str(userInformation['unsolved']) + "\n\n" +
                 "За последние 5 тренировок вы решили: \n" + str(userInformation['solvedLast']) + " " +
                  str(struct.declension(userInformation['solvedLast'], "задачу", "задачи", "задач")) + " из " +
-                         str(userInformation['allLast']) + "\n",
+                    str(userInformation['allLast']) + "\n" +
+                "Ваша активность составляет: " + str(userInformation['percent']) + "%\n",
                 parse_mode="html")
     except:
         print('Ошибка при выводе личной информации')
