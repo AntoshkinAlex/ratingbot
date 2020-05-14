@@ -238,7 +238,7 @@ def get_user_infomation():
                 elif activity >= 85:
                     user_information[user]['activity'] = '🟢 Высокий уровень активности'
                 elif activity >= 75:
-                    user_information[user]['activity'] = '🟡 Средний≥д уровень активности'
+                    user_information[user]['activity'] = '🟡 Средний уровень активности'
                 elif activity >= 67:
                     user_information[user]['activity'] = '🟠 Низкий уровень активности'
                 else:
