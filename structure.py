@@ -213,7 +213,7 @@ def get_user_infomation():
                     unsolvedCount += contest[contestId]['problemCount']
                     if len(const.hq_contests) - index <= 5:
                         allCount += contest[contestId]['problemCount']
-            if user_information[user]['achievements'] == '':
+            if user_information[user]['achievements'] == '' and const.userAchievements[user] == '':
                 user_information[user]['achievements'] = 'Пока тут ничего нет :('
             user_information[user]['solved'] = solvedCount
             user_information[user]['unsolved'] = unsolvedCount
