@@ -73,7 +73,7 @@ first_course = {
     'shevnin-hq': 'Даниил Шевнин',
 }
 
-userAcievements = {
+userAchievements = {
     'afonkin-hq': '',
     'vasil-hq': '',
     'galuza-hq': '',
