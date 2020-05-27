@@ -86,9 +86,12 @@ def print_contest_information(chatId, contestId):
 def print_user_information(chatId, user):
     try:
         userInformation = const.user_information[user]
+        userAchievements = ""
+        if user in const.userAchievements[user]:
+            userAchievements = const.userAchievements[user]
         bot.send_message(chatId, "<b>" + userInformation['name'] + ":</b>\n\n" +
                 "Активность:\n" + userInformation['activity'] + "\n\n" +
-                "Достижения:\n" + userInformation['achievements'] + "\n\n" +
+                "Достижения:\n" + userInformation['achievements'] + "\n" + userAcievements[user] + "\n\n" +
                 "Решено задач: " + str(userInformation['solved']) + "\n" +
                 "Не решено задач: " + str(userInformation['unsolved']) + "\n\n" +
                 "За последние 5 тренировок вы решили: \n" + str(userInformation['solvedLast']) + " " +
