@@ -32,8 +32,7 @@ handles = {
     'solov-hq': 'Полина Соловьёва',
     'tutichkin-hq': 'Семён Тютичкин',
     'filatov-hq': 'Юрий Филатов',
-    'khadzakos-hq': 'Николай Хадзакос',
-    'shevnin-hq': 'Даниил Шевнин'
+    'khadzakos-hq': 'Николай Хадзакос'
 }
 
 admins = [
@@ -56,7 +55,6 @@ users = {
     '320398520': 'Тютичкин',
     '600118091': 'Филатов',
     '379999478': 'Хадзакос',
-    '1011350398': 'Шевнин',
     '1224120254': 'Назаров',
     '374683082': 'Антошкин',
     '836229942': 'Афонин'
@@ -69,8 +67,7 @@ first_course = {
     'filatov-hq': 'Юрий Филатов',
     'pugachev-hq': 'Дмитрий Пугачёв',
     'nazarov-hq': 'Аркадий Назаров',
-    'khadzakos-hq': 'Николай Хадзакос',
-    'shevnin-hq': 'Даниил Шевнин',
+    'khadzakos-hq': 'Николай Хадзакос'
 }
 
 userAchievements = {
@@ -88,6 +85,5 @@ userAchievements = {
     'solov-hq': '',
     'tutichkin-hq': '',
     'filatov-hq': '',
-    'khadzakos-hq': '',
-    'shevnin-hq': ''
+    'khadzakos-hq': ''
 }
