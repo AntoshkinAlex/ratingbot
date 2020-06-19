@@ -15,13 +15,12 @@ def insert_user(user_id, name, surname):
         is_participant = True
     user = {
         "user_id": user_id,
-        "name": name,
         "surname": surname,
         "handle": handle,
         "is_participant": is_participant
     }
     try:
-        mdb.users.replace_one({"user_id": user_id}, user, upsert=True)
+        mdb.users.update_one({"user_id": user_id}, {'$set': user}, upsert=True)
     except:
         print("Ошибка при добавлении пользователя в базу данных")
     return user

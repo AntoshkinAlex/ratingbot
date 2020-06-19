@@ -98,8 +98,8 @@ def print_user_information(chatId, user):
                     str(userInformation['allLast']) + "\n" +
                 "Ваша активность составляет: " + str(userInformation['percent']) + "%\n",
                 parse_mode="html")
-    except:
-        print('Ошибка при выводе личной информации')
+    except Exception as err:
+        print('Ошибка при выводе личной информации', err)
         bot.send_message(chatId, "Произошла ошибка")
 
 

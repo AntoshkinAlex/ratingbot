@@ -151,8 +151,8 @@ def get_hq_contests():
 def take_contests():
     while True:
         try:
-            get_hq_contests()
-            get_contest()
+           # get_hq_contests()
+           # get_contest()
             get_user_infomation()
             get_all_rating()
             time.sleep(300)
@@ -226,7 +226,6 @@ def get_user_infomation():
                     user_information[user]['activity'] = '🟠 Низкий уровень активности'
                 else:
                     user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
-
             user_information[user]['name'] += ' ' + user_information[user]['activity'][0]
             user_information[user]['percent'] = math.floor(activity)
             user_id = const.users_handles[user]
