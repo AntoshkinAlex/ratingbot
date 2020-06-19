@@ -7,3 +7,4 @@ six==1.15.0
 texttable==1.6.2
 times==0.7
 pymongo==3.10.1
+dnspython==1.16.0
