@@ -5,6 +5,7 @@ import index as req
 import const
 from telebot import types
 import texttable as table
+import mongodb as backend
 
 bot = const.bot
 Thread1 = Thread(target=struct.take_contests)
@@ -14,9 +15,9 @@ Thread1.start()
 def print_contests(chatId):
     try:
         key = types.InlineKeyboardMarkup()
-        for i in const.hq_contests:
-            contestName = const.name_id_contests[i]
-            id = i
+        for contest in backend.get_contests():
+            contestName = contest['name']
+            id = contest['contest_id']
             button = types.InlineKeyboardButton(text=contestName, callback_data='id' + str(id))
             key.add(button)
         bot.send_message(chatId, "Выберите контест:", reply_markup=key)
@@ -24,13 +25,13 @@ def print_contests(chatId):
         bot.send_message(chatId, "Произошла ошибка")
         print('Произошла ошибка')
 
+
 def print_users(chatId):
     try:
         key = types.InlineKeyboardMarkup()
-        for i in const.handles:
-            userInformation = const.user_information[i]
-            id = i
-            button = types.InlineKeyboardButton(text=userInformation['name'], callback_data='login: ' + str(id))
+        for user in backend.get_users():
+            id = user['handle']
+            button = types.InlineKeyboardButton(text=user['name'], callback_data='login: ' + str(id))
             key.add(button)
         bot.send_message(chatId, "Выберите пользователя:", reply_markup=key)
     except:
@@ -40,9 +41,10 @@ def print_users(chatId):
 
 def print_contest_information(chatId, contestId):
     try:
-        contest = const.hq_contest_information[contestId]['contest']
-        contestTop = const.hq_contest_information[contestId]['contestTop']
-        sortedRating = const.hq_contest_information[contestId]['sortedRating']
+        hq_contest_information = backend.get_contest_information(contestId)
+        contest = hq_contest_information
+        contestTop = hq_contest_information['contestTop']
+        sortedRating = hq_contest_information['sortedRating']
 
         rating = table.Texttable()
         rating.set_deco(table.Texttable.HEADER)
@@ -62,8 +64,7 @@ def print_contest_information(chatId, contestId):
                                   " (" + str(contest['users'][item[1]]['solvedCount']) + "/" + str(contest['users'][item[1]]['upsolvedCount']) + ")"
                                   ])
     except Exception as err:
-        print(err)
-        print('Ошибка при выводе информации о контесте')
+        print('Ошибка при выводе информации о контесте', err)
 
     try:
         bot.send_message(chatId, "<b>" + contest['name'] + ":</b>\n\n" +
@@ -85,7 +86,7 @@ def print_contest_information(chatId, contestId):
 
 def print_user_information(chatId, user):
     try:
-        userInformation = const.user_information[user]
+        userInformation = backend.get_user(const.users_handles[user])
         userAchievements = const.userAchievements[user]
         bot.send_message(chatId, "<b>" + userInformation['name'] + ":</b>\n\n" +
                 "Активность:\n" + userInformation['activity'] + "\n\n" +
@@ -103,8 +104,10 @@ def print_user_information(chatId, user):
 
 
 def print_all_rating(chatId):
+    rating = backend.get_rating()
+    rating = rating['rating']
     try:
-        bot.send_message(chatId, "<b>" + "Общий рейтинг:" + "</b>\n\n<pre>" + const.all_rating.draw() + "</pre>", parse_mode="html")
+        bot.send_message(chatId, "<b>" + "Общий рейтинг:" + "</b>\n\n<pre>" + rating + "</pre>", parse_mode="html")
     except:
         bot.send_message(chatId, 'Произошла ошибка')
 
@@ -128,6 +131,7 @@ def start_chat(message):
 
 @bot.message_handler(content_types=["text"])
 def continue_chat(message):
+    backend.insert_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name)
     print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))
     if (message.text == "Меню"):
         key = types.InlineKeyboardMarkup()
@@ -150,6 +154,7 @@ def continue_chat(message):
 @bot.callback_query_handler(func=lambda text:True)
 def callback_text(text):
     message = text.data
+    backend.insert_user(text.from_user.id, text.from_user.first_name, text.from_user.last_name)
     print(str(text.message.chat.id) + ' ' + str(text.from_user.username) + ' ' + str(text.from_user.first_name) + ' ' + str(text.from_user.last_name)+ ': ' + str(message))
     if message == "getcontest":
         print_contests(text.message.chat.id)
@@ -160,7 +165,7 @@ def callback_text(text):
     elif message.find('login: ') != -1:
         print_user_information(text.message.chat.id, message[message.find('login: ') + 7: len(message)])
     elif message.find('id') != -1:
-        print_contest_information(text.message.chat.id, message[message.find('id') + 2 : len(message)])
+        print_contest_information(text.message.chat.id, message[message.find('id') + 2: len(message)])
 
 
 
