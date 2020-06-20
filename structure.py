@@ -11,8 +11,9 @@ import mongodb as backend
 
 bot = const.bot
 
+
 def get_username(handle):
-    return handle[handle.find("=") + 1 : ]
+    return handle[handle.find("=") + 1:]
 
 
 def get_contest_rating(place, userCount, solved, maxSolved, upsolved, problemCount):
@@ -49,7 +50,7 @@ def get_contest_information(contestId):
             userName = get_username(userName)
             if not (userName in const.handles):
                 continue
-            if not(userName in users):
+            if not (userName in users):
                 users[userName] = {}
             users[userName]['rank'] = user['rank']
             users[userName]['solved'] = [False for i in range(problemCount)]
@@ -71,12 +72,14 @@ def get_contest_information(contestId):
                     if problem['points'] == 1:
                         users[get_username(userName)]['upsolved'][index] = True
         for user in users:
-            users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'],  users[user]['upsolved'])
+            users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'],
+                                                                                        users[user]['upsolved'])
             maxSolved = max(maxSolved, users[user]['solvedCount'])
         for user in users:
-            users[user]['rating'] = get_contest_rating(users[user]['rank'], len(users),  users[user]['solvedCount'], maxSolved,  users[user]['upsolvedCount'], problemCount)
+            users[user]['rating'] = get_contest_rating(users[user]['rank'], len(users), users[user]['solvedCount'],
+                                                       maxSolved, users[user]['upsolvedCount'], problemCount)
         for user in const.handles:
-            if not(user in users):
+            if not (user in users):
                 users[user] = {}
                 users[user]['rank'] = 0
                 users[user]['solvedCount'] = 0
@@ -84,7 +87,6 @@ def get_contest_information(contestId):
                 users[user]['rating'] = 0
                 users[user]['solved'] = [False for i in range(problemCount)]
                 users[user]['upsolved'] = [False for i in range(problemCount)]
-
 
         contestInformation['users'] = users
 
@@ -94,8 +96,10 @@ def get_contest_information(contestId):
                 name = get_username(status['result'][submission]['author']['members'][0]['handle'])
                 if status['result'][submission]['verdict'] == 'OK' and (name in const.handles):
                     contestInformation['firstSubmission'] = {}
-                    contestInformation['firstSubmission']['name'] = get_username(status['result'][submission]['author']['members'][0]['handle'])
-                    contestInformation['firstSubmission']['time'] = status['result'][submission]['relativeTimeSeconds'] // 60
+                    contestInformation['firstSubmission']['name'] = get_username(
+                        status['result'][submission]['author']['members'][0]['handle'])
+                    contestInformation['firstSubmission']['time'] = status['result'][submission][
+                                                                        'relativeTimeSeconds'] // 60
                     break
         except:
             print("Trouble with status")
@@ -124,26 +128,39 @@ def good_luck():
     for user in const.users:
         bot.send_message(user, "Бот Сашка желает тебе удачи на контесте! 🏆")
 
+
 def reminder():
     for user in const.users:
         bot.send_message(user, "Бот Сашка напоминает вам о том, что до начала контеста осталось меньше 17 часов! 🖥")
+
 
 def get_hq_contests():
     try:
         for ind in range(2):
             hq_contest = req.get_codeforces_contest_list(const.apiKey[ind], const.apiSecret[ind], True)
             for contest in hq_contest['result']:
-                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0\
-                        and contest['phase'] == 'FINISHED':
-                    backend.update_contest(str(contest['id']), {'name': contest['name'], 'apis': [const.apiKey[ind], const.apiSecret[ind]]})
-                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0\
-                        and contest['relativeTimeSeconds'] >= -600 and contest['phase'] == 'BEFORE' and not(contest['id'] in const.goodluck):
-                    const.goodluck.append(contest['id'])
-                   # good_luck()
-                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0\
-                        and contest['relativeTimeSeconds'] >= -61200 and contest['phase'] == 'BEFORE' and not(contest['id'] in const.reminder):
-                    const.reminder.append(contest['id'])
-                 #   reminder()
+                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
+                    finished = False
+                    if contest['phase'] == 'FINISHED':
+                        finished = True
+                    backend.update_contest(str(contest['id']),
+                    {
+                        'name': contest['name'], 'apis': [const.apiKey[ind], const.apiSecret[ind]],
+                        'finished': finished
+                    })
+                    contest_inf = backend.get_contest_information(contest['id'])
+                    if not 'good_luck' in contest_inf or finished:
+                        backend.update_contest(str(contest['id']), {'good_luck': finished})
+                    if not 'reminder' in contest_inf or finished:
+                        backend.update_contest(str(contest['id']), {'reminder': finished})
+                    if contest['relativeTimeSeconds'] >= -600 and contest['phase'] == 'BEFORE' and not (
+                    contest_inf['good_luck']):
+                        backend.update_contest(str(contest['id']), {'good_luck': True})
+                        good_luck()
+                    if contest['relativeTimeSeconds'] >= -61200 and contest['phase'] == 'BEFORE' and not (
+                    contest_inf['reminder']):
+                        backend.update_contest(str(contest['id']), {'reminder': True})
+                        reminder()
     except:
         print('CF UPAL')
 
@@ -177,11 +194,16 @@ def get_user_infomation():
             solvedCount = 0
             solvedCountLast = 0
             allCount = 0
+            user_id = const.users_handles[user]
+            backend.insert_user(user_id)
+            user_div = backend.get_user(user_id)['division']
             for (index, contestId) in enumerate(contest):
                 if user in contest[contestId]['users']:
                     unsolvedCount += contest[contestId]['problemCount'] - \
-                        (contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount'])
-                    solvedCount += contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount']
+                                     (contest[contestId]['users'][user]['solvedCount'] +
+                                      contest[contestId]['users'][user]['upsolvedCount'])
+                    solvedCount += contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user][
+                        'upsolvedCount']
                     rank = contest[contestId]['users'][user]['rank']
                     if rank == 1:
                         user_information[user]['achievements'] += "🥇"
@@ -190,7 +212,8 @@ def get_user_infomation():
                     elif rank == 3:
                         user_information[user]['achievements'] += "🥉"
                     if len(contest) - index <= 5:
-                        solvedCountLast += contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user]['upsolvedCount']
+                        solvedCountLast += contest[contestId]['users'][user]['solvedCount'] + \
+                                           contest[contestId]['users'][user]['upsolvedCount']
                         allCount += contest[contestId]['problemCount']
                 else:
                     unsolvedCount += contest[contestId]['problemCount']
@@ -204,7 +227,7 @@ def get_user_infomation():
             user_information[user]['solvedLast'] = solvedCountLast
             user_information[user]['allLast'] = allCount
             activity = solvedCountLast / allCount * 100
-            if user in const.first_course:
+            if user_div == 2:
                 if activity >= 75:
                     user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
                 elif activity >= 69:
@@ -228,8 +251,6 @@ def get_user_infomation():
                     user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
             user_information[user]['name'] += ' ' + user_information[user]['activity'][0]
             user_information[user]['percent'] = math.floor(activity)
-            user_id = const.users_handles[user]
-            backend.insert_user(user_id, '', '')
             updates = user_information[user]
             backend.update_user(user_id, updates)
     except Exception as err:
@@ -281,7 +302,7 @@ def get_all_rating():
         hq_rating.reverse()
 
         hq_rating_information = {}
-        
+
         for item in hq_rating:
             user = item[0]
             hq_rating_information[user] = {}
@@ -305,10 +326,11 @@ def get_all_rating():
                 if index == 9:
                     space = ' '
                 print_rating.add_row([str(index + 1) + space +
-                    name,
-                    str(hq_rating_information[user]['rating']),
-                    str(hq_rating_information[user]['upsolved'] + hq_rating_information[user]['solved'])
-                ])
+                                      name,
+                                      str(hq_rating_information[user]['rating']),
+                                      str(hq_rating_information[user]['upsolved'] + hq_rating_information[user][
+                                          'solved'])
+                                      ])
             backend.update_rating({'rating': print_rating.draw()})
         except Exception as err:
             print("Не удалось получить таблицу рейтинга", err)
@@ -324,10 +346,3 @@ def declension(number, dec1, dec2, dec3):
     if (2 <= number % 10 and number % 10 <= 4):
         return dec2
     return dec3
-
-
-
-
-#print(get_hq_contest())
-#print(get_contest_information(273749))
-#print(get_first_three_place(273749))

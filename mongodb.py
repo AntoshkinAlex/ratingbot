@@ -5,24 +5,28 @@ import const
 mdb = MongoClient(MONGODB_LINK)[MONGODB]  # переменная для работы с монго
 
 
-def insert_user(user_id, name, surname):
+def insert_user(user_id):
     handle = ""
     user_id = str(user_id)
     is_participant = False
+    division = 1
+    old_user = get_user(user_id)
+    if old_user is not None and 'division' in old_user:
+        is_participant = old_user['is_participant']
+        division = old_user['division']
     if user_id in const.users_id:
         handle = const.users_id[user_id]
-        name = const.handles[handle]
         is_participant = True
     user = {
         "user_id": user_id,
-        "surname": surname,
         "handle": handle,
-        "is_participant": is_participant
+        "is_participant": is_participant,
+        "division": division
     }
     try:
         mdb.users.update_one({"user_id": user_id}, {'$set': user}, upsert=True)
-    except:
-        print("Ошибка при добавлении пользователя в базу данных")
+    except Exception as err:
+        print("Ошибка при добавлении пользователя в базу данных", err)
     return user
 
 
@@ -30,8 +34,8 @@ def update_user(user_id, keys):
     user_id = str(user_id)
     try:
         mdb.users.update_one({"user_id": user_id}, {'$set': keys}, upsert=True)
-    except:
-        print("Ошибка при обновлении пользователя в базе данных")
+    except Exception as err:
+        print("Ошибка при обновлении пользователя в базе данных", err)
 
 
 def get_users():
@@ -39,21 +43,24 @@ def get_users():
 
 
 def get_user(user_id):
-    user_id = str(user_id)
-    for user in mdb.users.find({"user_id": user_id}):
-        return user
+    try:
+        user_id = str(user_id)
+        for user in mdb.users.find({"user_id": user_id}):
+            return user
+    except Exception as err:
+        print("Ошибка при взятии пользователя из базы данных", err)
 
 
 def update_contest(contest_id, keys):
     contest_id = str(contest_id)
     try:
         mdb.contests.update_one({"contest_id": contest_id}, {'$set': keys}, upsert=True)
-    except:
-        print("Ошибка при обновлении контеста в базе данных")
+    except Exception as err:
+        print("Ошибка при обновлении контеста в базе данных", err)
 
 
 def get_contests():
-    return mdb.contests.find().sort("contest_id")
+    return mdb.contests.find({'finished': True}).sort("contest_id")
 
 
 def get_contest_information(contest_id):
@@ -67,6 +74,7 @@ def update_rating(rating):
         mdb.rating.update_one({}, {'$set': rating}, upsert=True)
     except Exception as err:
         print("Ошибка при обновлении рейтинга в базе данных", err)
+
 
 def get_rating():
     for rating in mdb.rating.find():
