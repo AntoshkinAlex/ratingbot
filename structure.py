@@ -151,8 +151,8 @@ def get_hq_contests():
 def take_contests():
     while True:
         try:
-           # get_hq_contests()
-           # get_contest()
+            get_hq_contests()
+            get_contest()
             get_user_infomation()
             get_all_rating()
             time.sleep(300)
