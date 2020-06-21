@@ -119,3 +119,12 @@ def find_session(chat_id):
 def erase_session(chat_id):
     chat_id = str(chat_id)
     mdb.sessions.delete_many({"chat_id": chat_id})
+
+
+def add_weather(date):
+    mdb.weather.insert({"date": date})
+
+
+def find_weather(date):
+    for day in mdb.weather.find({"date": date}):
+        return day

@@ -1,15 +1,42 @@
 import math
-
 import index as req
-from threading import Thread
 import time
 import const
 import operator
 import texttable as table
-from functools import cmp_to_key
 import mongodb as backend
+import datetime
+import requests
+from bs4 import BeautifulSoup as BS
 
 bot = const.bot
+
+
+def weather(now):
+    try:
+        r = requests.get('https://sinoptik.ua/погода-ставрополь')
+        html = BS(r.content, 'html.parser')
+        for el in html.select('#content'):
+            t_min = el.select('.temperature .min')[0].text
+            t_max = el.select('.temperature .max')[0].text
+            text = el.select('.wDescription .description')[0].text
+        t_min = t_min[t_min.find(' '): len(t_min)]
+        t_max = t_max[t_max.find(' '): len(t_max)]
+        while text[0] == ' ':
+            text = text[1:len(text)]
+        backend.add_weather(now)
+        for user in backend.get_users(False):
+            name = '!'
+            if user['name'] != user['user_id']:
+                name = ', ' + user['name'] + '!'
+            mes = "Доброе утро" + name + "\n\n" + "Бот Сашка подготовил прогноз погоды на сегодня:\n\n" + \
+                  "Мин. температура воздуха: " + str(t_min)+ '\n' + "Макс. температура воздуха: " \
+                  + str(t_max) + '\n\n' + str(text)
+            if user['user_id'] != '374683082' and user['user_id'] != '320398520':
+                continue
+            bot.send_message(user['user_id'], mes)
+    except Exception as err:
+        print('Не получилось сделать прогноз погоды', err)
 
 
 def get_username(handle):
@@ -200,6 +227,14 @@ def get_hq_contests():
 def take_contests():
     while True:
         try:
+            now = datetime.datetime.now()
+            print(now)
+            if now.hour >= 9:
+                now = datetime.datetime.now()
+                now = str(now)
+                now = now[0:now.find(' ')]
+                if backend.find_weather(now) is None:
+                    weather(now)
             get_hq_contests()
             get_contest()
             get_user_infomation()
@@ -253,7 +288,8 @@ def get_user_infomation():
                     if len(contest) - index <= 5:
                         allCount += contest[contestId]['problemCount']
 
-            if user_information[user_id]['achievements'] == '' and const.userAchievements[user_id] == '':
+            user_inf = backend.get_user(user_id)
+            if 'custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not('custom_achievements' in user_inf):
                 user_information[user_id]['achievements'] = 'Пока тут ничего нет :('
             user_information[user_id]['solved'] = solvedCount
             user_information[user_id]['unsolved'] = unsolvedCount

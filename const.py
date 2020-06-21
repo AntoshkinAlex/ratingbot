@@ -1,12 +1,13 @@
-import texttable as table
 import telebot
 
 TOKEN = "1108350056:AAGg7QZA6lABP8L3FPfYvTU4_WZJh5Rv9ck"
+WEATHER_API = "8bb2a2b72751f9fd9f5e87183c354f2e"
 bot = telebot.TeleBot(TOKEN)
 apiKey = ["ea22ef6a8048cfcd258e9242151cb1141bf16c23", "147ec3d78a8170c07def4d0b7032afcfae0f3292"]
 apiSecret = ["1435eb83678671d1c94ef43e9ded1e5e719501ba", "b8b59bae8bda9bec15c02f76f65491c4c2de89da"]
 MONGODB_LINK = "mongodb+srv://Alexey:a2622326@hqbot.xabdv.mongodb.net/HQbot?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE"
 MONGODB = "HQbot"
+
 
 authors = ['antoshkin', 'aafonin']
 
@@ -88,24 +89,4 @@ users = {
     '1224120254': 'Назаров',
     '374683082': 'Антошкин',
     '836229942': 'Афонин'
-}
-
-userAchievements = {
-    '797286916': '',
-    '976786169': '',
-    '783199820': '',
-    '758268123': '',
-    '787009991': '🎖 - Победил в кахуте',
-    '941135020': '',
-    '407260042': '',
-    '727246784': '',
-    '1183150951': '',
-    '522998780': '',
-    '429844258': '',
-    '320398520': '',
-    '600118091': '',
-    '379999478': '',
-    '1224120254': '',
-    '374683082': '',
-    '836229942': ''
 }

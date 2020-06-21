@@ -89,7 +89,11 @@ def print_user_information(chatId, user):
     print(user)
     try:
         userInformation = backend.get_user(user)
-        userAchievements = const.userAchievements[user]
+        userAchievements = '\n'
+        if 'custom_achievements' in userInformation:
+            userAchievements = ''
+            for achievement in userInformation['custom_achievements']:
+                userAchievements += str(achievement) + '\n'
         bot.send_message(chatId, "<b>" + userInformation['active_name'] + ":</b>\n\n" +
                 "Div: " + str(userInformation['division']) + "\n" +
                 "Активность:\n" + userInformation['activity'] + "\n\n" +
