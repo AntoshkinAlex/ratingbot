@@ -9,3 +9,4 @@ times==0.7
 pymongo==3.10.1
 dnspython==1.16.0
 beautifulsoup4==4.9.1
+pytz==2020.1
