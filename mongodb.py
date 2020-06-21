@@ -11,17 +11,27 @@ def insert_user(user_id):
     is_participant = False
     division = 1
     old_user = get_user(user_id)
+    name = user_id
+    active_name = user_id
     if old_user is not None and 'division' in old_user:
-        is_participant = old_user['is_participant']
         division = old_user['division']
+    if old_user is not None and 'is_participant' in old_user:
+        is_participant = old_user['is_participant']
+    if old_user is not None and 'name' in old_user:
+        name = old_user['name']
+    if old_user is not None and 'active_name' in old_user:
+        active_name = old_user['active_name']
+
     if user_id in const.users_id:
         handle = const.users_id[user_id]
-        is_participant = True
+
     user = {
         "user_id": user_id,
         "handle": handle,
         "is_participant": is_participant,
-        "division": division
+        "division": division,
+        "name": name,
+        "active_name": active_name
     }
     try:
         mdb.users.update_one({"user_id": user_id}, {'$set': user}, upsert=True)
@@ -38,8 +48,14 @@ def update_user(user_id, keys):
         print("Ошибка при обновлении пользователя в базе данных", err)
 
 
-def get_users():
-    return mdb.users.find({"is_participant": True})
+def get_users(is_participant):
+    try:
+        if is_participant:
+            return mdb.users.find({"is_participant": True})
+        else:
+            return mdb.users.find({})
+    except Exception as err:
+        print("Ошибка при взятии пользователей из базы данных", err)
 
 
 def get_user(user_id):
@@ -79,3 +95,27 @@ def update_rating(rating):
 def get_rating():
     for rating in mdb.rating.find():
         return rating
+
+
+def insert_session(chat_id, name, args):
+    chat_id = str(chat_id)
+    session = {
+        "chat_id": chat_id,
+        "name": name,
+        "args": args
+    }
+    try:
+        mdb.sessions.update_one({"chat_id": chat_id}, {'$set': session}, upsert=True)
+    except Exception as err:
+        print("Ошибка при обновлении сессии", err)
+
+
+def find_session(chat_id):
+    chat_id = str(chat_id)
+    for session in mdb.sessions.find({"chat_id": chat_id}):
+        return session
+
+
+def erase_session(chat_id):
+    chat_id = str(chat_id)
+    mdb.sessions.delete_many({"chat_id": chat_id})

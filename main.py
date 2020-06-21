@@ -27,12 +27,13 @@ def print_contests(chatId):
         print('Произошла ошибка при выводе контестов', err)
 
 
-def print_users(chatId, prefix):
+def print_users(chatId, prefix, admin):
     try:
         key = types.InlineKeyboardMarkup()
-        for user in backend.get_users():
-            id = user['handle']
-            button = types.InlineKeyboardButton(text=user['name'], callback_data=prefix + 'login: ' + str(id))
+        for user in backend.get_users(not(admin)).sort('is_participant'):
+            backend.insert_user(user['user_id'])
+            id = user['user_id']
+            button = types.InlineKeyboardButton(text=user['active_name'], callback_data=prefix + 'login: ' + str(id))
             key.add(button)
         bot.send_message(chatId, "Выберите пользователя:", reply_markup=key)
     except Exception as err:
@@ -46,7 +47,6 @@ def print_contest_information(chatId, contestId):
         contest = hq_contest_information
         contestTop = hq_contest_information['contestTop']
         sortedRating = hq_contest_information['sortedRating']
-
         rating = table.Texttable()
         rating.set_deco(table.Texttable.HEADER)
         rating.set_cols_align(["l", "c"])
@@ -55,7 +55,7 @@ def print_contest_information(chatId, contestId):
         rating.add_row(["Фамилия\n", "🏆\n"])
         space = '  '
         for index, item in enumerate(sortedRating):
-            userName = const.handles[item[1]]
+            userName = backend.get_user(item[1])['name']
             name = userName[userName.find(' ') + 1 : ]
             if (index == 9):
                 space = ' '
@@ -69,15 +69,15 @@ def print_contest_information(chatId, contestId):
 
     try:
         bot.send_message(chatId, "<b>" + contest['name'] + ":</b>\n\n" +
-                         "Первая успешная посылка:\n" + const.handles[contest['firstSubmission']['name']] + "\n" +
+                         "Первая успешная посылка:\n" + backend.get_user(contest['firstSubmission']['name'])['name'] + "\n" +
                          "Время посылки: " + str(contest['firstSubmission']['time']) + " " + struct.declension(
             contest['firstSubmission']['time'], "минута", "минуты", "минут") + "\n\n" +
                          "Топ:\n" +
-                         "🥇 " + const.handles[contestTop[0][0]] + " - " + str(contestTop[0][1]) + " " +
+                         "🥇 " + backend.get_user(contestTop[0][0])['name'] + " - " + str(contestTop[0][1]) + " " +
                          struct.declension(contestTop[0][1], "задача", "задачи", "задач") + "\n" +
-                         "🥈 " + const.handles[contestTop[1][0]] + " - " + str(contestTop[1][1]) + " " +
+                         "🥈 " + backend.get_user(contestTop[1][0])['name'] + " - " + str(contestTop[1][1]) + " " +
                          struct.declension(contestTop[1][1], "задача", "задачи", "задач") + "\n" +
-                         "🥉 " + const.handles[contestTop[2][0]] + " - " + str(contestTop[2][1]) + " " +
+                         "🥉 " + backend.get_user(contestTop[2][0])['name'] + " - " + str(contestTop[2][1]) + " " +
                          struct.declension(contestTop[2][1], "задача", "задачи", "задач") + "\n\n" +
                          "Рейтинг за тренировку:\n\n<pre>" + rating.draw() + "</pre>",
                          parse_mode="html")
@@ -86,10 +86,11 @@ def print_contest_information(chatId, contestId):
 
 
 def print_user_information(chatId, user):
+    print(user)
     try:
-        userInformation = backend.get_user(const.users_handles[user])
+        userInformation = backend.get_user(user)
         userAchievements = const.userAchievements[user]
-        bot.send_message(chatId, "<b>" + userInformation['name'] + ":</b>\n\n" +
+        bot.send_message(chatId, "<b>" + userInformation['active_name'] + ":</b>\n\n" +
                 "Div: " + str(userInformation['division']) + "\n" +
                 "Активность:\n" + userInformation['activity'] + "\n\n" +
                 "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n\n" +
@@ -106,8 +107,6 @@ def print_user_information(chatId, user):
 
 
 
-
-
 def print_all_rating(chatId):
     rating = backend.get_rating()
     rating = rating['rating']
@@ -119,6 +118,8 @@ def print_all_rating(chatId):
 
 @bot.message_handler(commands=["start"])
 def start_chat(message):
+    backend.insert_user(message.from_user.id)
+    backend.erase_session(message.from_user.id)
     menuKey = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menuBut = types.KeyboardButton(text="Меню")
     menuKey.add(menuBut)
@@ -138,7 +139,12 @@ def start_chat(message):
 def continue_chat(message):
     backend.insert_user(message.from_user.id)
     print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))
-    if (message.text == "Меню"):
+    if backend.find_session(message.from_user.id) is not None:
+        session = backend.find_session(message.from_user.id)
+        backend.erase_session(message.from_user.id)
+        if session['name'] == 'achievement':
+            admin.new_achievement(message.text, message.from_user.id, session['args'])
+    elif message.text == "Меню":
         key = types.InlineKeyboardMarkup()
         but_1 = types.InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
         but_2 = types.InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
@@ -157,7 +163,7 @@ def continue_chat(message):
                 bot.send_message(str(message.chat.id), 'Бот Саша успешно доставил сообщение:\n' + mes)
     elif message.text.find('/admin') != -1:
         if str(message.chat.id) in const.admins:
-            print_users(message.chat.id, 'admin_info_')
+            print_users(message.chat.id, 'admin_info_', True)
         else:
             img = open('Who_are_u?.jpg', 'rb')
             bot.send_photo(message.chat.id, img)
@@ -165,9 +171,9 @@ def continue_chat(message):
 
 @bot.callback_query_handler(func=lambda text:True)
 def callback_text(text):
+    backend.erase_session(text.from_user.id)
     try:
         message = text.data
-        print(message)
         backend.insert_user(text.from_user.id)
         print(str(text.message.chat.id) + ' ' + str(text.from_user.username) + ' ' + str(text.from_user.first_name) + ' ' + str(text.from_user.last_name)+ ': ' + str(message))
         if message == "getcontest":
@@ -175,7 +181,7 @@ def callback_text(text):
         elif message == "getrating":
             print_all_rating(text.message.chat.id)
         elif message == "getuser":
-            print_users(text.message.chat.id, 'info')
+            print_users(text.message.chat.id, 'info', False)
         elif message.find('infologin: ') != -1:
             print_user_information(text.message.chat.id, message[message.find('infologin: ') + 11: len(message)])
         elif message.find('admin_info_login: ') != -1:
@@ -187,6 +193,14 @@ def callback_text(text):
                 bot.send_message(text.message.chat.id, 'Не удалось вывести пользователя')
         elif message.find('change_div ') != -1:
             admin.change_div(message, text.from_user.id)
+        elif message.find('change_participant ') != -1:
+            admin.change_participant(message, text.from_user.id)
+        elif message.find('show_achievements ') != -1:
+            admin.show_achievements(message, text.from_user.id)
+        elif message.find('achievement: ') != -1:
+            admin.edit_achievement(message, text.from_user.id)
+        elif message.find('+achievement') != -1:
+            admin.add_achievement(message, text.from_user.id)
         elif message.find('id') != -1:
             print_contest_information(text.message.chat.id, message[message.find('id') + 2: len(message)])
     except Exception as err:

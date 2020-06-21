@@ -48,45 +48,71 @@ def get_contest_information(contestId):
         for user in standings['result']['rows']:
             userName = user['party']['members'][0]['handle']
             userName = get_username(userName)
-            if not (userName in const.handles):
+            if not(userName in const.users_handles):
                 continue
-            if not (userName in users):
-                users[userName] = {}
-            users[userName]['rank'] = user['rank']
-            users[userName]['solved'] = [False for i in range(problemCount)]
-            users[userName]['upsolved'] = [False for i in range(problemCount)]
-
+            user_id = const.users_handles[userName]
+            backend.insert_user(user_id)
+            user_inf = backend.get_user(user_id)
+            if not(user_inf['is_participant']):
+                continue
+            if not (user_id in users):
+                users[user_id] = {}
+                users[user_id]['rank'] = user['rank']
+                users[user_id]['solved'] = [False for i in range(problemCount)]
+                users[user_id]['upsolved'] = [False for i in range(problemCount)]
         for user in standings['result']['rows']:
             userName = user['party']['members'][0]['handle']
-            if not (get_username(userName) in const.handles):
-                continue
             if userName.find('=') == -1:
                 continue
+            userName = get_username(userName)
+            if not(userName in const.users_handles):
+                continue
+            user_id = const.users_handles[userName]
+            user_inf = backend.get_user(user_id)
+            if not (user_inf['is_participant']):
+                continue
+
             if user['rank'] != 0:
-                users[get_username(userName)]['rank'] = user['rank']
+                users[user_id]['rank'] = user['rank']
+
             for index, problem in enumerate(user['problemResults']):
                 if user['rank'] != 0:
                     if problem['points'] == 1:
-                        users[get_username(userName)]['solved'][index] = True
+                        users[user_id]['solved'][index] = True
                 else:
                     if problem['points'] == 1:
-                        users[get_username(userName)]['upsolved'][index] = True
+                        users[user_id]['upsolved'][index] = True
+
+        official = 0
+        used = [0] * 200
         for user in users:
-            users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'],
-                                                                                        users[user]['upsolved'])
+            user_inf = users[user]
+            if user_inf['rank'] != 0:
+                official += 1
+                used[int(user_inf['rank'])] = user
+            users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'], users[user]['upsolved'])
             maxSolved = max(maxSolved, users[user]['solvedCount'])
+
+        top = 1
+        for i in range(0, len(users)):
+            if used[i] != 0:
+                users[used[i]]['rank'] = top
+                top += 1
+
         for user in users:
-            users[user]['rating'] = get_contest_rating(users[user]['rank'], len(users), users[user]['solvedCount'],
+            users[user]['rating'] = get_contest_rating(users[user]['rank'], official, users[user]['solvedCount'],
                                                        maxSolved, users[user]['upsolvedCount'], problemCount)
-        for user in const.handles:
-            if not (user in users):
-                users[user] = {}
-                users[user]['rank'] = 0
-                users[user]['solvedCount'] = 0
-                users[user]['upsolvedCount'] = 0
-                users[user]['rating'] = 0
-                users[user]['solved'] = [False for i in range(problemCount)]
-                users[user]['upsolved'] = [False for i in range(problemCount)]
+
+        for user in backend.get_users(True):
+            user_id = user['user_id']
+            if not (user_id in users):
+                users[user_id] = {}
+                users[user_id]['rank'] = 0
+                users[user_id]['solvedCount'] = 0
+                users[user_id]['upsolvedCount'] = 0
+                users[user_id]['rating'] = 0
+                users[user_id]['solved'] = [False for i in range(problemCount)]
+                users[user_id]['upsolved'] = [False for i in range(problemCount)]
 
         contestInformation['users'] = users
 
@@ -94,15 +120,21 @@ def get_contest_information(contestId):
         try:
             for submission in range(len(status['result']) - 1, -1, -1):
                 name = get_username(status['result'][submission]['author']['members'][0]['handle'])
-                if status['result'][submission]['verdict'] == 'OK' and (name in const.handles):
+                if not (name in const.users_handles):
+                    continue
+                user_id = const.users_handles[name]
+                user_inf = backend.get_user(user_id)
+                if not (user_inf['is_participant']):
+                    continue
+                if status['result'][submission]['verdict'] == 'OK':
                     contestInformation['firstSubmission'] = {}
-                    contestInformation['firstSubmission']['name'] = get_username(
-                        status['result'][submission]['author']['members'][0]['handle'])
+                    contestInformation['firstSubmission']['name'] = const.users_handles[get_username(
+                        status['result'][submission]['author']['members'][0]['handle'])]
                     contestInformation['firstSubmission']['time'] = status['result'][submission][
                                                                         'relativeTimeSeconds'] // 60
                     break
-        except:
-            print("Trouble with status")
+        except Exception as err:
+            print("Trouble with status", err)
         backend.update_contest(contestId, contestInformation)
     except Exception as err:
         print("Failed Contest Information", err)
@@ -186,72 +218,75 @@ def get_user_infomation():
             contest[contestId] = {}
             contest[contestId] = backend.get_contest_information(contestId)
 
-        for user in const.handles:
-            user_information[user] = {}
-            user_information[user]['name'] = const.handles[user]
-            user_information[user]['achievements'] = ''
+        for user in backend.get_users(True):
+            user_id = user['user_id']
+            backend.insert_user(user_id)
+            user_information[user_id] = {}
+            user_information[user_id]['name'] = backend.get_user(user_id)['name']
+            user_information[user_id]['achievements'] = ''
             unsolvedCount = 0
             solvedCount = 0
             solvedCountLast = 0
             allCount = 0
-            user_id = const.users_handles[user]
-            backend.insert_user(user_id)
             user_div = backend.get_user(user_id)['division']
-            for (index, contestId) in enumerate(contest):
-                if user in contest[contestId]['users']:
+            for (index, contest_inf) in enumerate(backend.get_contests()):
+                contestId = contest_inf['contest_id']
+                if user_id in contest[contestId]['users']:
                     unsolvedCount += contest[contestId]['problemCount'] - \
-                                     (contest[contestId]['users'][user]['solvedCount'] +
-                                      contest[contestId]['users'][user]['upsolvedCount'])
-                    solvedCount += contest[contestId]['users'][user]['solvedCount'] + contest[contestId]['users'][user][
+                                     (contest[contestId]['users'][user_id]['solvedCount'] +
+                                      contest[contestId]['users'][user_id]['upsolvedCount'])
+                    solvedCount += contest[contestId]['users'][user_id]['solvedCount'] + contest[contestId]['users'][user_id][
                         'upsolvedCount']
-                    rank = contest[contestId]['users'][user]['rank']
+                    rank = contest[contestId]['users'][user_id]['rank']
                     if rank == 1:
-                        user_information[user]['achievements'] += "🥇"
+                        user_information[user_id]['achievements'] += "🥇"
                     elif rank == 2:
-                        user_information[user]['achievements'] += "🥈"
+                        user_information[user_id]['achievements'] += "🥈"
                     elif rank == 3:
-                        user_information[user]['achievements'] += "🥉"
+                        user_information[user_id]['achievements'] += "🥉"
                     if len(contest) - index <= 5:
-                        solvedCountLast += contest[contestId]['users'][user]['solvedCount'] + \
-                                           contest[contestId]['users'][user]['upsolvedCount']
+                        solvedCountLast += contest[contestId]['users'][user_id]['solvedCount'] + \
+                                           contest[contestId]['users'][user_id]['upsolvedCount']
                         allCount += contest[contestId]['problemCount']
                 else:
                     unsolvedCount += contest[contestId]['problemCount']
                     if len(contest) - index <= 5:
                         allCount += contest[contestId]['problemCount']
-            if user_information[user]['achievements'] == '' and const.userAchievements[user] == '':
-                user_information[user]['achievements'] = 'Пока тут ничего нет :('
-            user_information[user]['solved'] = solvedCount
-            user_information[user]['unsolved'] = unsolvedCount
-            user_information[user]['activity'] = ''
-            user_information[user]['solvedLast'] = solvedCountLast
-            user_information[user]['allLast'] = allCount
+
+            if user_information[user_id]['achievements'] == '' and const.userAchievements[user_id] == '':
+                user_information[user_id]['achievements'] = 'Пока тут ничего нет :('
+            user_information[user_id]['solved'] = solvedCount
+            user_information[user_id]['unsolved'] = unsolvedCount
+            user_information[user_id]['activity'] = ''
+            user_information[user_id]['solvedLast'] = solvedCountLast
+            user_information[user_id]['allLast'] = allCount
             activity = solvedCountLast / allCount * 100
+
             if user_div == 2:
                 if activity >= 75:
-                    user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
+                    user_information[user_id]['activity'] = '🟣 Очень высокий уровень активности'
                 elif activity >= 69:
-                    user_information[user]['activity'] = '🟢 Высокий уровень активности'
+                    user_information[user_id]['activity'] = '🟢 Высокий уровень активности'
                 elif activity >= 62:
-                    user_information[user]['activity'] = '🟡 Средний уровень активности'
+                    user_information[user_id]['activity'] = '🟡 Средний уровень активности'
                 elif activity >= 57:
-                    user_information[user]['activity'] = '🟠 Низкий уровень активности'
+                    user_information[user_id]['activity'] = '🟠 Низкий уровень активности'
                 else:
-                    user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
+                    user_information[user_id]['activity'] = '🔴 Очень низкий уровень активности'
             else:
                 if activity >= 95:
-                    user_information[user]['activity'] = '🟣 Очень высокий уровень активности'
+                    user_information[user_id]['activity'] = '🟣 Очень высокий уровень активности'
                 elif activity >= 85:
-                    user_information[user]['activity'] = '🟢 Высокий уровень активности'
+                    user_information[user_id]['activity'] = '🟢 Высокий уровень активности'
                 elif activity >= 75:
-                    user_information[user]['activity'] = '🟡 Средний уровень активности'
+                    user_information[user_id]['activity'] = '🟡 Средний уровень активности'
                 elif activity >= 67:
-                    user_information[user]['activity'] = '🟠 Низкий уровень активности'
+                    user_information[user_id]['activity'] = '🟠 Низкий уровень активности'
                 else:
-                    user_information[user]['activity'] = '🔴 Очень низкий уровень активности'
-            user_information[user]['name'] += ' ' + user_information[user]['activity'][0]
-            user_information[user]['percent'] = math.floor(activity)
-            updates = user_information[user]
+                    user_information[user_id]['activity'] = '🔴 Очень низкий уровень активности'
+            user_information[user_id]['active_name'] = user_information[user_id]['name'] + ' ' + user_information[user_id]['activity'][0]
+            user_information[user_id]['percent'] = math.floor(activity)
+            updates = user_information[user_id]
             backend.update_user(user_id, updates)
     except Exception as err:
         print('Не удалось взять личную информацию пользователей', err)
@@ -286,14 +321,16 @@ def get_all_rating():
         hq_rating = {}
         solved = {}
         upsolved = {}
-        for handle in const.handles.keys():
+        for user in backend.get_users(True):
+            handle = user['user_id']
             hq_rating[handle] = 0
             solved[handle] = 0
             upsolved[handle] = 0
 
         for contest in backend.get_contests():
             for user in contest['users']:
-                if user in const.handles:
+                is_participant = backend.get_user(user)['is_participant']
+                if is_participant:
                     hq_rating[user] += contest['users'][user]['rating']
                     solved[user] += contest['users'][user]['solvedCount']
                     upsolved[user] += contest['users'][user]['upsolvedCount']
@@ -321,7 +358,7 @@ def get_all_rating():
         try:
             space = '  '
             for index, user in enumerate(hq_rating_information):
-                userName = str(const.handles[user])
+                userName = backend.get_user(user)['name']
                 name = userName[userName.find(' ') + 1:]
                 if index == 9:
                     space = ' '

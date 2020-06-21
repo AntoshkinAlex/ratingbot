@@ -9,8 +9,6 @@ MONGODB_LINK = "mongodb+srv://Alexey:a2622326@hqbot.xabdv.mongodb.net/HQbot?retr
 MONGODB = "HQbot"
 
 authors = ['antoshkin', 'aafonin']
-goodluck = []
-reminder = []
 
 handles = {
     'afonkin-hq': 'Павел Афонькин',
@@ -93,19 +91,21 @@ users = {
 }
 
 userAchievements = {
-    'afonkin-hq': '',
-    'vasil-hq': '',
-    'galuza-hq': '',
-    'guryanov-hq': '',
-    'zhuravlev-hq': '🎖 - Победил в кахуте',
-    'movzalevskaya-hq': '',
-    'movsesyan-hq': '',
-    'nazarov-hq': '',
-    'povol-hq': '',
-    'pugachev-hq': '',
-    'seleznev-hq': '',
-    'solov-hq': '',
-    'tutichkin-hq': '',
-    'filatov-hq': '',
-    'khadzakos-hq': ''
+    '797286916': '',
+    '976786169': '',
+    '783199820': '',
+    '758268123': '',
+    '787009991': '🎖 - Победил в кахуте',
+    '941135020': '',
+    '407260042': '',
+    '727246784': '',
+    '1183150951': '',
+    '522998780': '',
+    '429844258': '',
+    '320398520': '',
+    '600118091': '',
+    '379999478': '',
+    '1224120254': '',
+    '374683082': '',
+    '836229942': ''
 }
