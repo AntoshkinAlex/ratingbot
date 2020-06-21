@@ -229,7 +229,6 @@ def take_contests():
     while True:
         try:
             now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-            print(now)
             if now.hour >= 9:
                 now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
                 now = str(now)
