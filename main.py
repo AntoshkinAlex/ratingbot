@@ -86,7 +86,6 @@ def print_contest_information(chatId, contestId):
 
 
 def print_user_information(chatId, user):
-    print(user)
     try:
         userInformation = backend.get_user(user)
         userAchievements = '\n'

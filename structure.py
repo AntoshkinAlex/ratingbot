@@ -240,7 +240,8 @@ def take_contests():
             get_user_infomation()
             get_all_rating()
             time.sleep(300)
-        except:
+        except Exception as err:
+            print("Ошибка при обновлении бота", err)
             time.sleep(300)
 
 
