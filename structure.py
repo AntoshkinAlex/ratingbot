@@ -8,6 +8,7 @@ import mongodb as backend
 import datetime
 import requests
 from bs4 import BeautifulSoup as BS
+import pytz
 
 bot = const.bot
 
@@ -227,10 +228,10 @@ def get_hq_contests():
 def take_contests():
     while True:
         try:
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
             print(now)
             if now.hour >= 9:
-                now = datetime.datetime.now()
+                now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
                 now = str(now)
                 now = now[0:now.find(' ')]
                 if backend.find_weather(now) is None:
