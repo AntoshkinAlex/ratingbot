@@ -33,8 +33,6 @@ def weather(now):
             mes = "Доброе утро" + name + "\n\n" + "Бот Сашка подготовил прогноз погоды на сегодня:\n\n" + \
                   "Мин. температура воздуха: " + str(t_min)+ '\n' + "Макс. температура воздуха: " \
                   + str(t_max) + '\n\n' + str(text)
-            if user['user_id'] != '374683082' and user['user_id'] != '320398520':
-                continue
             bot.send_message(user['user_id'], mes)
     except Exception as err:
         print('Не получилось сделать прогноз погоды', err)
