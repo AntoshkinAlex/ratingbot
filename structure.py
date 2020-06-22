@@ -15,6 +15,19 @@ bot = const.bot
 
 def weather(now):
     try:
+        rate = None
+        try:
+            r = requests.get('https://yandex.ru/news/quotes/2002.html')
+            html = BS(r.content, 'html.parser')
+            rate = html.find('td', {'class': 'quote__value'}).text
+            rate = rate.replace(',', '.')
+            rate = float(rate)
+            print(rate)
+            rate = round(rate * 100) / 100
+            rate = str(rate)
+        except Exception as err:
+            print('Не удалось получить курс', err)
+
         r = requests.get('https://sinoptik.ua/погода-ставрополь')
         html = BS(r.content, 'html.parser')
         for el in html.select('#content'):
@@ -26,13 +39,17 @@ def weather(now):
         while text[0] == ' ':
             text = text[1:len(text)]
         backend.add_weather(now)
-        for user in backend.get_users(False):
+        for user in backend.get_users({'notifications': True}):
             name = '!'
             if user['name'] != user['user_id']:
                 name = ', ' + user['name'] + '!'
             mes = "Доброе утро" + name + "\n\n" + "Бот Сашка подготовил прогноз погоды на сегодня:\n\n" + \
-                  "Мин. температура воздуха: " + str(t_min)+ '\n' + "Макс. температура воздуха: " \
+                  "Мин. температура воздуха: " + str(t_min) + '\n' + "Макс. температура воздуха: " \
                   + str(t_max) + '\n\n' + str(text)
+
+            if rate is not None:
+                mes += '\n\nКурс ЦБ: 1$ = ' + rate + '₽'
+
             bot.send_message(user['user_id'], mes)
     except Exception as err:
         print('Не получилось сделать прогноз погоды', err)
@@ -74,12 +91,11 @@ def get_contest_information(contestId):
         for user in standings['result']['rows']:
             userName = user['party']['members'][0]['handle']
             userName = get_username(userName)
-            if not(userName in const.users_handles):
+            if not (userName in const.users_handles):
                 continue
             user_id = const.users_handles[userName]
-            backend.insert_user(user_id)
             user_inf = backend.get_user(user_id)
-            if not(user_inf['is_participant']):
+            if not (user_inf['is_participant']):
                 continue
             if not (user_id in users):
                 users[user_id] = {}
@@ -91,7 +107,7 @@ def get_contest_information(contestId):
             if userName.find('=') == -1:
                 continue
             userName = get_username(userName)
-            if not(userName in const.users_handles):
+            if not (userName in const.users_handles):
                 continue
             user_id = const.users_handles[userName]
             user_inf = backend.get_user(user_id)
@@ -116,7 +132,8 @@ def get_contest_information(contestId):
             if user_inf['rank'] != 0:
                 official += 1
                 used[int(user_inf['rank'])] = user
-            users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'], users[user]['upsolved'])
+            users[user]['solvedCount'], users[user]['upsolvedCount'] = get_solved_count(users[user]['solved'],
+                                                                                        users[user]['upsolved'])
             maxSolved = max(maxSolved, users[user]['solvedCount'])
 
         top = 1
@@ -129,7 +146,7 @@ def get_contest_information(contestId):
             users[user]['rating'] = get_contest_rating(users[user]['rank'], official, users[user]['solvedCount'],
                                                        maxSolved, users[user]['upsolvedCount'], problemCount)
 
-        for user in backend.get_users(True):
+        for user in backend.get_users({'is_participant': True}):
             user_id = user['user_id']
             if not (user_id in users):
                 users[user_id] = {}
@@ -202,21 +219,22 @@ def get_hq_contests():
                     if contest['phase'] == 'FINISHED':
                         finished = True
                     backend.update_contest(str(contest['id']),
-                    {
-                        'name': contest['name'], 'apis': [const.apiKey[ind], const.apiSecret[ind]],
-                        'finished': finished
-                    })
+                                           {
+                                               'name': contest['name'],
+                                               'apis': [const.apiKey[ind], const.apiSecret[ind]],
+                                               'finished': finished
+                                           })
                     contest_inf = backend.get_contest_information(contest['id'])
                     if not 'good_luck' in contest_inf or finished:
                         backend.update_contest(str(contest['id']), {'good_luck': finished})
                     if not 'reminder' in contest_inf or finished:
                         backend.update_contest(str(contest['id']), {'reminder': finished})
                     if contest['relativeTimeSeconds'] >= -600 and contest['phase'] == 'BEFORE' and not (
-                    contest_inf['good_luck']):
+                            contest_inf['good_luck']):
                         backend.update_contest(str(contest['id']), {'good_luck': True})
                         good_luck()
                     if contest['relativeTimeSeconds'] >= -61200 and contest['phase'] == 'BEFORE' and not (
-                    contest_inf['reminder']):
+                            contest_inf['reminder']):
                         backend.update_contest(str(contest['id']), {'reminder': True})
                         reminder()
     except:
@@ -252,9 +270,8 @@ def get_user_infomation():
             contest[contestId] = {}
             contest[contestId] = backend.get_contest_information(contestId)
 
-        for user in backend.get_users(True):
+        for user in backend.get_users({'is_participant': True}):
             user_id = user['user_id']
-            backend.insert_user(user_id)
             user_information[user_id] = {}
             user_information[user_id]['name'] = backend.get_user(user_id)['name']
             user_information[user_id]['achievements'] = ''
@@ -269,8 +286,9 @@ def get_user_infomation():
                     unsolvedCount += contest[contestId]['problemCount'] - \
                                      (contest[contestId]['users'][user_id]['solvedCount'] +
                                       contest[contestId]['users'][user_id]['upsolvedCount'])
-                    solvedCount += contest[contestId]['users'][user_id]['solvedCount'] + contest[contestId]['users'][user_id][
-                        'upsolvedCount']
+                    solvedCount += contest[contestId]['users'][user_id]['solvedCount'] + \
+                                   contest[contestId]['users'][user_id][
+                                       'upsolvedCount']
                     rank = contest[contestId]['users'][user_id]['rank']
                     if rank == 1:
                         user_information[user_id]['achievements'] += "🥇"
@@ -288,7 +306,9 @@ def get_user_infomation():
                         allCount += contest[contestId]['problemCount']
 
             user_inf = backend.get_user(user_id)
-            if user_information[user_id]['achievements'] == '' and ('custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not('custom_achievements' in user_inf)):
+            if user_information[user_id]['achievements'] == '' and (
+                    'custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not (
+                    'custom_achievements' in user_inf)):
                 user_information[user_id]['achievements'] = 'Пока тут ничего нет :('
             user_information[user_id]['solved'] = solvedCount
             user_information[user_id]['unsolved'] = unsolvedCount
@@ -319,7 +339,8 @@ def get_user_infomation():
                     user_information[user_id]['activity'] = '🟠 Низкий уровень активности'
                 else:
                     user_information[user_id]['activity'] = '🔴 Очень низкий уровень активности'
-            user_information[user_id]['active_name'] = user_information[user_id]['name'] + ' ' + user_information[user_id]['activity'][0]
+            user_information[user_id]['active_name'] = user_information[user_id]['name'] + ' ' + \
+                                                       user_information[user_id]['activity'][0]
             user_information[user_id]['percent'] = math.floor(activity)
             updates = user_information[user_id]
             backend.update_user(user_id, updates)
@@ -356,7 +377,7 @@ def get_all_rating():
         hq_rating = {}
         solved = {}
         upsolved = {}
-        for user in backend.get_users(True):
+        for user in backend.get_users({'is_participant': True}):
             handle = user['user_id']
             hq_rating[handle] = 0
             solved[handle] = 0
@@ -411,10 +432,10 @@ def get_all_rating():
 
 
 def declension(number, dec1, dec2, dec3):
-    if (11 <= number % 100 and number % 100 <= 19):
+    if 11 <= number % 100 and number % 100 <= 19:
         return dec3
-    if (number % 10 == 1):
+    if number % 10 == 1:
         return dec1
-    if (2 <= number % 10 and number % 10 <= 4):
+    if 2 <= number % 10 and number % 10 <= 4:
         return dec2
     return dec3

@@ -7,7 +7,6 @@ bot = const.bot
 def print_admin_user_information(chatId, user):
     try:
         user_id = user
-        backend.insert_user(user_id)
         userInformation = backend.get_user(user_id)
         userAchievements = '\n'
         if 'custom_achievements' in userInformation:
@@ -37,7 +36,6 @@ def print_admin_user_information(chatId, user):
 def change_div(message, chat_id):
     try:
         user_id = message[message.find('change_div ') + 11: len(message)]
-        backend.insert_user(user_id)
         user = backend.get_user(user_id)
         newdiv = 1
         if user['division'] == 1:
@@ -52,7 +50,6 @@ def change_div(message, chat_id):
 def change_participant(message, chat_id):
     try:
         user_id = message[message.find('change_participant ') + 19: len(message)]
-        backend.insert_user(user_id)
         user = backend.get_user(user_id)
         newparticipant = True
         if user['is_participant']:
@@ -67,7 +64,6 @@ def change_participant(message, chat_id):
 def show_achievements(message, chat_id):
     try:
         user_id = message[message.find('show_achievements ') + 18: len(message)]
-        backend.insert_user(user_id)
         user = backend.get_user(user_id)
         custom_achievements = []
         if 'custom_achievements' in user:

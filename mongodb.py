@@ -5,22 +5,36 @@ import const
 mdb = MongoClient(MONGODB_LINK)[MONGODB]  # переменная для работы с монго
 
 
-def insert_user(user_id):
-    handle = ""
+def get_user(user_id):
     user_id = str(user_id)
+    try:
+        for user in mdb.users.find({"user_id": user_id}):
+            return user
+    except Exception as err:
+        print("Ошибка при взятии пользователя из базы данных", err)
+
+
+def insert_user(user_id):
+    user_id = str(user_id)
+    handle = ""
     is_participant = False
     division = 1
     old_user = get_user(user_id)
     name = user_id
-    active_name = user_id
-    if old_user is not None and 'division' in old_user:
-        division = old_user['division']
-    if old_user is not None and 'is_participant' in old_user:
-        is_participant = old_user['is_participant']
-    if old_user is not None and 'name' in old_user:
-        name = old_user['name']
-    if old_user is not None and 'active_name' in old_user:
-        active_name = old_user['active_name']
+    active_name = name
+    notifications = True
+    if old_user is not None:
+        if 'division' in old_user:
+            division = old_user['division']
+        if 'is_participant' in old_user:
+            is_participant = old_user['is_participant']
+        if 'name' in old_user:
+            name = old_user['name']
+            active_name = name
+        if 'active_name' in old_user:
+            active_name = old_user['active_name']
+        if 'notifications' in old_user:
+            notifications = old_user['notifications']
 
     if user_id in const.users_id:
         handle = const.users_id[user_id]
@@ -31,7 +45,8 @@ def insert_user(user_id):
         "is_participant": is_participant,
         "division": division,
         "name": name,
-        "active_name": active_name
+        "active_name": active_name,
+        "notifications": notifications
     }
     try:
         mdb.users.update_one({"user_id": user_id}, {'$set': user}, upsert=True)
@@ -48,23 +63,11 @@ def update_user(user_id, keys):
         print("Ошибка при обновлении пользователя в базе данных", err)
 
 
-def get_users(is_participant):
+def get_users(params):
     try:
-        if is_participant:
-            return mdb.users.find({"is_participant": True})
-        else:
-            return mdb.users.find({})
+        return mdb.users.find(params)
     except Exception as err:
         print("Ошибка при взятии пользователей из базы данных", err)
-
-
-def get_user(user_id):
-    try:
-        user_id = str(user_id)
-        for user in mdb.users.find({"user_id": user_id}):
-            return user
-    except Exception as err:
-        print("Ошибка при взятии пользователя из базы данных", err)
 
 
 def update_contest(contest_id, keys):
@@ -122,6 +125,7 @@ def erase_session(chat_id):
 
 
 def add_weather(date):
+    mdb.weather.delete_many({})
     mdb.weather.insert({"date": date})
 
 
