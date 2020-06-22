@@ -181,10 +181,11 @@ def continue_chat(message):
         bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
     elif message.text.find('/all ') != -1 and str(message.chat.id) in const.admins:  # вывод сообщения всем пользователям
         for user in backend.get_users({}):
+            userId = user['user_id']
             try:
-                bot.send_message(user, message.text[message.text.find('/all ') + 5: len(message.text)])
+                bot.send_message(userId, message.text[message.text.find('/all ') + 5: len(message.text)])
             except Exception as err:
-                print('Пользователь удалил чат', err)
+                print('Пользователь ' + userId + ' удалил чат', err)
     elif message.text.find('/admin') != -1:  # вывод пользователей для админа
         if str(message.chat.id) in const.admins:
             print_users(message.chat.id, 'admin_info_', True)
