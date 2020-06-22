@@ -28,6 +28,7 @@ def print_contests(chatId):
 
 
 def print_users(chatId, prefix, admin):
+    global users
     try:
         key = types.InlineKeyboardMarkup()
         if not admin:
