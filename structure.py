@@ -288,7 +288,7 @@ def get_user_infomation():
                         allCount += contest[contestId]['problemCount']
 
             user_inf = backend.get_user(user_id)
-            if 'custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not('custom_achievements' in user_inf):
+            if user_information[user_id]['achievements'] == '' and ('custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not('custom_achievements' in user_inf)):
                 user_information[user_id]['achievements'] = 'Пока тут ничего нет :('
             user_information[user_id]['solved'] = solvedCount
             user_information[user_id]['unsolved'] = unsolvedCount
