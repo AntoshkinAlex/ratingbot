@@ -28,13 +28,12 @@ def print_contests(chatId):
 
 
 def print_users(chatId, prefix, admin):
-    global users
     try:
         key = types.InlineKeyboardMarkup()
         if not admin:
             users = backend.get_users({'is_participant': not admin}).sort('is_participant')
         else:
-            backend.get_users({}).sort('is_participant')
+            users = backend.get_users({}).sort('is_participant')
         for user in users:
             id = user['user_id']
             button = types.InlineKeyboardButton(text=user['active_name'], callback_data=prefix + 'login: ' + str(id))
