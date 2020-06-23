@@ -12,7 +12,6 @@ import pytz
 
 bot = const.bot
 
-
 def weather(now):
     try:
         rate = None
@@ -22,7 +21,6 @@ def weather(now):
             rate = html.find('td', {'class': 'quote__value'}).text
             rate = rate.replace(',', '.')
             rate = float(rate)
-            print(rate)
             rate = round(rate * 100) / 100
             rate = str(rate)
         except Exception as err:
@@ -47,10 +45,16 @@ def weather(now):
                   "Мин. температура воздуха: " + str(t_min) + '\n' + "Макс. температура воздуха: " \
                   + str(t_max) + '\n\n' + str(text)
 
+
             if rate is not None:
                 mes += '\n\nКурс ЦБ: 1$ = ' + rate + '₽'
 
-            bot.send_message(user['user_id'], mes)
+            try:
+                bot.send_message(user['user_id'], mes)
+
+            except Exception as err:
+                print('Пользователь ' + user['name'] + ' удалил чат', err)
+
     except Exception as err:
         print('Не получилось сделать прогноз погоды', err)
 
@@ -200,13 +204,19 @@ def get_first_three_place(contestId):
 
 
 def good_luck():
-    for user in const.users:
-        bot.send_message(user, "Бот Сашка желает тебе удачи на контесте! 🏆")
+    for user in backend.get_users({'is_participant': True}):
+        try:
+            bot.send_message(user['user_id'], "Бот Сашка желает тебе удачи на контесте! 🏆")
+        except Exception as err:
+            print('Пользователь ' + user['name'] + ' удалил чат', err)
 
 
 def reminder():
-    for user in const.users:
-        bot.send_message(user, "Бот Сашка напоминает вам о том, что до начала контеста осталось меньше 17 часов! 🖥")
+    for user in backend.get_users({'is_participant': True}):
+        try:
+            bot.send_message(user, "Бот Сашка напоминает вам о том, что до начала контеста осталось меньше 17 часов! 🖥")
+        except Exception as err:
+            print('Пользователь ' + user['name'] + ' удалил чат', err)
 
 
 def get_hq_contests():

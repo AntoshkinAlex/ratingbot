@@ -8,7 +8,6 @@ apiSecret = ["1435eb83678671d1c94ef43e9ded1e5e719501ba", "b8b59bae8bda9bec15c02f
 MONGODB_LINK = "mongodb+srv://Alexey:a2622326@hqbot.xabdv.mongodb.net/HQbot?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE"
 MONGODB = "HQbot"
 
-
 authors = ['antoshkin', 'aafonin']
 
 handles = {
