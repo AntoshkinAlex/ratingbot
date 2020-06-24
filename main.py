@@ -4,22 +4,22 @@ import structure as struct
 import index as req
 import const
 import admin
-from telebot import types
 import texttable as table
 import mongodb as backend
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 bot = const.bot
 Thread1 = Thread(target=struct.take_contests)
 Thread1.start()
 
 
-def print_contests(chatId):
+def print_contests(chatId, prefix):
     try:
-        key = types.InlineKeyboardMarkup()
+        key = InlineKeyboardMarkup()
         for contest in backend.get_contests():
             contestName = contest['name']
             id = contest['contest_id']
-            button = types.InlineKeyboardButton(text=contestName, callback_data='id' + str(id))
+            button = InlineKeyboardButton(text=contestName, callback_data=prefix + 'id' + str(id))
             key.add(button)
         bot.send_message(chatId, "Выберите контест:", reply_markup=key)
     except Exception as err:
@@ -29,14 +29,14 @@ def print_contests(chatId):
 
 def print_users(chatId, prefix, admin):
     try:
-        key = types.InlineKeyboardMarkup()
+        key = InlineKeyboardMarkup()
         if not admin:
             users = backend.get_users({'is_participant': not admin}).sort('is_participant')
         else:
             users = backend.get_users({}).sort('is_participant')
         for user in users:
             id = user['user_id']
-            button = types.InlineKeyboardButton(text=user['active_name'], callback_data=prefix + 'login: ' + str(id))
+            button = InlineKeyboardButton(text=user['active_name'], callback_data=prefix + 'login: ' + str(id))
             key.add(button)
         bot.send_message(chatId, "Выберите пользователя:", reply_markup=key)
     except Exception as err:
@@ -46,8 +46,8 @@ def print_users(chatId, prefix, admin):
 
 def print_settings(chatId):
     try:
-        key = types.InlineKeyboardMarkup()
-        button = types.InlineKeyboardButton(text='Вкл/Выкл уведомления', callback_data='notifications')
+        key = InlineKeyboardMarkup()
+        button = InlineKeyboardButton(text='Вкл/Выкл уведомления', callback_data='notifications')
         key.add(button)
         user = backend.get_user(chatId)
         notifications = user['notifications']
@@ -89,6 +89,10 @@ def print_contest_information(chatId, contestId):
         print('Ошибка при выводе информации о контесте', err)
 
     try:
+        key = InlineKeyboardMarkup()
+        but_1 = InlineKeyboardButton(text="Посмотреть активность",
+                                     callback_data="not_admin_contest_id" + str(contestId))
+        key.add(but_1)
         bot.send_message(chatId, "<b>" + contest['name'] + ":</b>\n\n" +
                          "Первая успешная посылка:\n" + backend.get_user(contest['firstSubmission']['name'])[
                              'name'] + "\n" +
@@ -102,7 +106,7 @@ def print_contest_information(chatId, contestId):
                          "🥉 " + backend.get_user(contestTop[2][0])['name'] + " - " + str(contestTop[2][1]) + " " +
                          struct.declension(contestTop[2][1], "задача", "задачи", "задач") + "\n\n" +
                          "Рейтинг за тренировку:\n\n<pre>" + rating.draw() + "</pre>",
-                         parse_mode="html")
+                         parse_mode="html", reply_markup=key)
     except Exception as err:
         bot.send_message(chatId, "Произошла ошибка при выводе таблицы контеста", err)
 
@@ -117,14 +121,13 @@ def print_user_information(chatId, user):
                 userAchievements += str(achievement) + '\n'
         bot.send_message(chatId, "<b>" + userInformation['active_name'] + ":</b>\n\n" +
                          "Div: " + str(userInformation['division']) + "\n" +
-                         "Активность:\n" + userInformation['activity'] + "\n\n" +
+                         "Активность:\n" + const.activity[userInformation['activity']] + "\n\n" +
                          "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n\n" +
                          "Решено задач: " + str(userInformation['solved']) + "\n" +
                          "Не решено задач: " + str(userInformation['unsolved']) + "\n\n" +
                          "За последние 5 тренировок вы решили: \n" + str(userInformation['solvedLast']) + " " +
                          str(struct.declension(userInformation['solvedLast'], "задачу", "задачи", "задач")) + " из " +
-                         str(userInformation['allLast']) + "\n" +
-                         "Ваша активность составляет: " + str(userInformation['percent']) + "%\n",
+                         str(userInformation['allLast']) + "\n",
                          parse_mode="html")
     except Exception as err:
         print('Ошибка при выводе личной информации', err)
@@ -144,14 +147,14 @@ def print_all_rating(chatId):
 def start_chat(message):
     backend.insert_user(message.from_user.id)  # запоминаем пользователя в бд
 
-    menuKey = types.ReplyKeyboardMarkup(resize_keyboard=True)  # кнопка меню
-    menuBut = types.KeyboardButton(text="Меню")
+    menuKey = ReplyKeyboardMarkup(resize_keyboard=True)  # кнопка меню
+    menuBut = KeyboardButton(text="Меню")
     menuKey.add(menuBut)
 
-    key = types.InlineKeyboardMarkup() # кнопки взаимодействия
-    but_1 = types.InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
-    but_2 = types.InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
-    but_3 = types.InlineKeyboardButton(text="Личная информация", callback_data="getuser")
+    key = InlineKeyboardMarkup() # кнопки взаимодействия
+    but_1 = InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
+    but_2 = InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
+    but_3 = InlineKeyboardButton(text="Личная информация", callback_data="getuser")
     key.add(but_1, but_2)
     key.add(but_3)
 
@@ -162,7 +165,6 @@ def start_chat(message):
 @bot.message_handler(content_types=["text"])
 def continue_chat(message):
     backend.insert_user(message.from_user.id)  # запоминаем пользователя в бд
-
     print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(
         message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))  # логи
 
@@ -171,11 +173,14 @@ def continue_chat(message):
         backend.erase_session(message.from_user.id)
         if session['name'] == 'achievement':
             admin.new_achievement(message.text, message.from_user.id, session['args'])
+        elif session['name'] == 'change_contest_activity':
+            admin.change_activity(message.text, message.from_user.id, session['args'])
+
     elif message.text == "Меню":
-        key = types.InlineKeyboardMarkup()  # кнопки взаимодействия
-        but_1 = types.InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
-        but_2 = types.InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
-        but_3 = types.InlineKeyboardButton(text="Личная информация", callback_data="getuser")
+        key = InlineKeyboardMarkup()  # кнопки взаимодействия
+        but_1 = InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
+        but_2 = InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
+        but_3 = InlineKeyboardButton(text="Личная информация", callback_data="getuser")
         key.add(but_1, but_2)
         key.add(but_3)
         bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
@@ -186,9 +191,14 @@ def continue_chat(message):
                 bot.send_message(userId, message.text[message.text.find('/all ') + 5: len(message.text)])
             except Exception as err:
                 print('Пользователь ' + userId + ' удалил чат', err)
-    elif message.text.find('/admin') != -1:  # вывод пользователей для админа
+    elif message.text.find('/admin') != -1:
         if str(message.chat.id) in const.admins:
-            print_users(message.chat.id, 'admin_info_', True)
+            key = InlineKeyboardMarkup()  # кнопки взаимодействия
+            but_1 = InlineKeyboardButton(text="Пользователи", callback_data="admin_users")
+            but_2 = InlineKeyboardButton(text="Контесты", callback_data="admin_contests")
+            key.add(but_1)
+            key.add(but_2)
+            bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
         else:
             img = open('Who_are_u?.jpg', 'rb')
             bot.send_photo(message.chat.id, img)
@@ -204,7 +214,7 @@ def callback_text(text):
         print(str(text.message.chat.id) + ' ' + str(text.from_user.username) + ' ' + str(
             text.from_user.first_name) + ' ' + str(text.from_user.last_name) + ': ' + str(message))  # логи
         if message == "getcontest":
-            print_contests(text.message.chat.id)
+            print_contests(text.message.chat.id, '')
         elif message == "getrating":
             print_all_rating(text.message.chat.id)
         elif message == "getuser":
@@ -228,6 +238,12 @@ def callback_text(text):
             admin.edit_achievement(message, text.from_user.id)
         elif message.find('+achievement') != -1:
             admin.add_achievement(message, text.from_user.id)
+        elif message.find('not_admin_contest_id') != -1:
+            id = message[message.find('not_admin_contest_id') + 20: len(message)]
+            admin.show_contest(id, text.message.chat.id, False)
+        elif message.find('admin_contest_id') != -1:
+            id = message[message.find('admin_contest_id') + 16: len(message)]
+            admin.show_contest(id, text.message.chat.id, True)
         elif message.find('id') != -1:
             print_contest_information(text.message.chat.id, message[message.find('id') + 2: len(message)])
         elif message.find('notifications') != -1:
@@ -235,6 +251,19 @@ def callback_text(text):
             new_notifications = not user['notifications']
             backend.update_user(text.message.chat.id, {'notifications': new_notifications})
             print_settings(text.message.chat.id)
+        elif message.find('admin_users') != -1:
+            print_users(text.message.chat.id, 'admin_info_', True)  # вывод пользователей для админа
+        elif message.find('admin_contests') != -1:
+            print_contests(text.message.chat.id, 'admin_contest_')
+        elif message.find('choose_div') != -1:
+            contestId = message[message.find(' ') + 1 : message.rfind(' ')]
+            chatId = message[message.rfind(' ') + 1: len(message)]
+            admin.choose_div(contestId, chatId)
+        elif message.find('div_') != -1:
+            contestId = message[message.find(' ') + 1: message.rfind(' ')]
+            chatId = message[message.rfind(' ') + 1: len(message)]
+            div = message[message.find('_') + 1: message.find(' ')]
+            admin.edit_activity(contestId, chatId, div)
     except Exception as err:
         print("Проблемы с callback", err)
 

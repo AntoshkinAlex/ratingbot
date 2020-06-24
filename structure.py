@@ -161,6 +161,16 @@ def get_contest_information(contestId):
                 users[user_id]['solved'] = [False for i in range(problemCount)]
                 users[user_id]['upsolved'] = [False for i in range(problemCount)]
 
+        for user in users:
+            contest_activity = contest['activity']
+            user_inf = backend.get_user(int(user))
+            user_div = int(user_inf['division'])
+            user_activity = -1
+            for kol in contest_activity[user_div - 1]:
+                if kol <= contest['users'][user]['solvedCount'] + contest['users'][user]['upsolvedCount']:
+                    user_activity += 1
+                users[user]['user_activity'] = user_activity
+
         contestInformation['users'] = users
 
         status = req.get_codeforces_contest_status(contestId, contest['apis'][0], contest['apis'][1])
@@ -235,6 +245,9 @@ def get_hq_contests():
                                                'finished': finished
                                            })
                     contest_inf = backend.get_contest_information(contest['id'])
+                    if not 'activity' in contest_inf:
+                        activity = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+                        backend.update_contest(contest['id'], {'activity': activity})
                     if not 'good_luck' in contest_inf or finished:
                         backend.update_contest(str(contest['id']), {'good_luck': finished})
                     if not 'reminder' in contest_inf or finished:
@@ -285,11 +298,11 @@ def get_user_infomation():
             user_information[user_id] = {}
             user_information[user_id]['name'] = backend.get_user(user_id)['name']
             user_information[user_id]['achievements'] = ''
+            user_information[user_id]['activity'] = 5
             unsolvedCount = 0
             solvedCount = 0
             solvedCountLast = 0
             allCount = 0
-            user_div = backend.get_user(user_id)['division']
             for (index, contest_inf) in enumerate(backend.get_contests()):
                 contestId = contest_inf['contest_id']
                 if user_id in contest[contestId]['users']:
@@ -310,10 +323,9 @@ def get_user_infomation():
                         solvedCountLast += contest[contestId]['users'][user_id]['solvedCount'] + \
                                            contest[contestId]['users'][user_id]['upsolvedCount']
                         allCount += contest[contestId]['problemCount']
-                else:
-                    unsolvedCount += contest[contestId]['problemCount']
-                    if len(contest) - index <= 5:
-                        allCount += contest[contestId]['problemCount']
+                        user_information[user_id]['activity'] = min(user_information[user_id]['activity'],
+                                                                    contest[contestId]['users'][user_id][
+                                                                        'user_activity'])
 
             user_inf = backend.get_user(user_id)
             if user_information[user_id]['achievements'] == '' and (
@@ -322,36 +334,10 @@ def get_user_infomation():
                 user_information[user_id]['achievements'] = 'Пока тут ничего нет :('
             user_information[user_id]['solved'] = solvedCount
             user_information[user_id]['unsolved'] = unsolvedCount
-            user_information[user_id]['activity'] = ''
             user_information[user_id]['solvedLast'] = solvedCountLast
             user_information[user_id]['allLast'] = allCount
-            activity = solvedCountLast / allCount * 100
-
-            if user_div == 2:
-                if activity >= 75:
-                    user_information[user_id]['activity'] = '🟣 Очень высокий уровень активности'
-                elif activity >= 69:
-                    user_information[user_id]['activity'] = '🟢 Высокий уровень активности'
-                elif activity >= 62:
-                    user_information[user_id]['activity'] = '🟡 Средний уровень активности'
-                elif activity >= 57:
-                    user_information[user_id]['activity'] = '🟠 Низкий уровень активности'
-                else:
-                    user_information[user_id]['activity'] = '🔴 Очень низкий уровень активности'
-            else:
-                if activity >= 95:
-                    user_information[user_id]['activity'] = '🟣 Очень высокий уровень активности'
-                elif activity >= 85:
-                    user_information[user_id]['activity'] = '🟢 Высокий уровень активности'
-                elif activity >= 75:
-                    user_information[user_id]['activity'] = '🟡 Средний уровень активности'
-                elif activity >= 67:
-                    user_information[user_id]['activity'] = '🟠 Низкий уровень активности'
-                else:
-                    user_information[user_id]['activity'] = '🔴 Очень низкий уровень активности'
             user_information[user_id]['active_name'] = user_information[user_id]['name'] + ' ' + \
-                                                       user_information[user_id]['activity'][0]
-            user_information[user_id]['percent'] = math.floor(activity)
+                                                       const.activity[user_information[user_id]['activity']][0]
             updates = user_information[user_id]
             backend.update_user(user_id, updates)
     except Exception as err:
