@@ -81,6 +81,7 @@ def get_solved_count(solved, upsolved):
 
 def get_contest_information(contestId):
     try:
+        print(contestId)
         contestId = str(contestId)
         contest = backend.get_contest_information(contestId)
         standings = req.get_codeforces_contest_stadings(contestId, contest['apis'][0], contest['apis'][1], True)
@@ -106,6 +107,7 @@ def get_contest_information(contestId):
                 users[user_id]['rank'] = user['rank']
                 users[user_id]['solved'] = [False for i in range(problemCount)]
                 users[user_id]['upsolved'] = [False for i in range(problemCount)]
+
         for user in standings['result']['rows']:
             userName = user['party']['members'][0]['handle']
             if userName.find('=') == -1:
@@ -167,7 +169,7 @@ def get_contest_information(contestId):
             user_div = int(user_inf['division'])
             user_activity = -1
             for kol in contest_activity[user_div - 1]:
-                if kol <= contest['users'][user]['solvedCount'] + contest['users'][user]['upsolvedCount']:
+                if kol <= users[user]['solvedCount'] + users[user]['upsolvedCount']:
                     user_activity += 1
                 users[user]['user_activity'] = user_activity
 
