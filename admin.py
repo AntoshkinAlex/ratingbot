@@ -222,7 +222,7 @@ def change_activity(mes, chat_id, args):
         new_activity = backend.get_contest_information(args['contest_id'])['activity']
         new_activity[int(args['div']) - 1] = activity
         backend.update_contest(args['contest_id'], {'activity': new_activity})
-        show_contest(args['contest_id'], chat_id)
+        show_contest(args['contest_id'], chat_id, True)
     except Exception as err:
         print('Не удалось поменять активность', err)
         bot.send_message(chat_id, 'Не удалось поменять активность')
