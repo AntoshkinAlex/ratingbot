@@ -81,7 +81,6 @@ def get_solved_count(solved, upsolved):
 
 def get_contest_information(contestId):
     try:
-        print(contestId)
         contestId = str(contestId)
         contest = backend.get_contest_information(contestId)
         standings = req.get_codeforces_contest_stadings(contestId, contest['apis'][0], contest['apis'][1], True)
