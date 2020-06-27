@@ -16,21 +16,20 @@ def print_admin_user_information(chatId, user):
             for achievement in userInformation['custom_achievements']:
                 userAchievements += str(achievement) + '\n'
         key = InlineKeyboardMarkup()
-        but_1 = InlineKeyboardButton(text="Изменить дивизион", callback_data="change_div " + user_id)
-        but_2 = InlineKeyboardButton(text="Изменить состояние участника контестов",
+        but_1 = InlineKeyboardButton(text="Дивизион", callback_data="change_div " + user_id)
+        but_2 = InlineKeyboardButton(text="Участник",
                                      callback_data="change_participant " + user_id)
-        but_3 = InlineKeyboardButton(text="Изменить личные достижения", callback_data="show_achievements " + user_id)
-        key.add(but_1)
-        key.add(but_2)
-        key.add(but_3)
+        but_3 = InlineKeyboardButton(text="Имя", callback_data="change_name " + user_id)
+        but_4 = InlineKeyboardButton(text="Достижения", callback_data="show_achievements " + user_id)
+        key.add(but_1, but_2, but_3, but_4)
         is_participant = "Да"
         if not userInformation['is_participant']:
             is_participant = "Нет"
-        bot.send_message(chatId, "<b>" + userInformation['active_name'] + ":</b>\n\n" +
-                         "Дивизион:\n" + str(userInformation['division']) + "\n\n" +
-                         "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n" +
-                         "Является участником контестов: " + is_participant + "\n",
-                         parse_mode="html", reply_markup=key)
+        mes = "<b>" + userInformation['active_name'] + ":</b>\n\n" + "Дивизион:\n" + str(userInformation['division']) + "\n\n"
+        if 'achievements' in userInformation:
+            mes += "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n"
+        mes += "Является участником контестов: " + is_participant + "\n"
+        bot.send_message(chatId, mes, parse_mode="html", reply_markup=key)
     except Exception as err:
         print('Ошибка при выводе личной информации админу', err)
         bot.send_message(chatId, "Произошла ошибка")
@@ -62,6 +61,27 @@ def change_participant(message, chat_id):
     except Exception as err:
         print('Не удалось поменять состояние участника контеста', err)
         bot.send_message(chat_id, 'Не удалось поменять состояние участника контеста')
+
+
+def change_name(message, chat_id):
+    try:
+        user_id = message[message.find('change_name ') + 12: len(message)]
+        backend.insert_session(chat_id, 'name', {'user_id': user_id})
+        bot.send_message(chat_id, 'Напишите через пробел имя и фамилию')
+    except Exception as err:
+        print('Произошла ошибка при выводе сообщения об изменении имени', err)
+        bot.send_message(chat_id, 'Произошла ошибка при выводе сообщения об изменении имени')
+
+
+def edit_name(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        name = message
+        backend.update_user(user_id, {'name': name, 'active_name': name})
+        print_admin_user_information(chat_id, user_id)
+    except Exception as err:
+        print('Произошла ошибка при изменении имени', err)
+        bot.send_message(chat_id, 'Произошла ошибка при изменении имени')
 
 
 def show_achievements(message, chat_id):
