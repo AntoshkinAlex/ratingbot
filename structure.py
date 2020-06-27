@@ -268,15 +268,15 @@ def get_hq_contests():
 def take_contests():
     while True:
         try:
-            now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-            if now.hour >= 9:
-                now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-                now = str(now)
-                now = now[0:now.find(' ')]
-                if backend.find_weather(now) is None:
-                    weather(now)
-            get_hq_contests()
-            get_contest()
+            # now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
+            # if now.hour >= 9:
+            #     now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
+            #     now = str(now)
+            #     now = now[0:now.find(' ')]
+            #     if backend.find_weather(now) is None:
+            #         weather(now)
+            # get_hq_contests()
+            # get_contest()
             get_user_infomation()
             get_all_rating()
             time.sleep(300)
@@ -299,7 +299,8 @@ def get_user_infomation():
             user_information[user_id] = {}
             user_information[user_id]['name'] = backend.get_user(user_id)['name']
             user_information[user_id]['achievements'] = ''
-            user_information[user_id]['activity'] = 5
+            user_information[user_id]['activity'] = 0
+            user_information[user_id]['last_activities'] = []
             unsolvedCount = 0
             solvedCount = 0
             solvedCountLast = 0
@@ -324,10 +325,10 @@ def get_user_infomation():
                         solvedCountLast += contest[contestId]['users'][user_id]['solvedCount'] + \
                                            contest[contestId]['users'][user_id]['upsolvedCount']
                         allCount += contest[contestId]['problemCount']
-                        user_information[user_id]['activity'] = min(user_information[user_id]['activity'],
-                                                                    contest[contestId]['users'][user_id][
-                                                                        'user_activity'])
+                        user_information[user_id]['last_activities'].append(contest[contestId]['users'][user_id]['user_activity'])
+                        user_information[user_id]['activity'] += contest[contestId]['users'][user_id]['user_activity']
 
+            user_information[user_id]['activity'] = round(user_information[user_id]['activity'] / 5.0)
             user_inf = backend.get_user(user_id)
             if user_information[user_id]['achievements'] == '' and (
                     'custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not (

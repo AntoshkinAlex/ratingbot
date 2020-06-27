@@ -119,10 +119,14 @@ def print_user_information(chatId, user):
             userAchievements = ''
             for achievement in userInformation['custom_achievements']:
                 userAchievements += str(achievement) + '\n'
+        activity = ''
+        for color in userInformation['last_activities']:
+            activity += const.activity[color][0]
         bot.send_message(chatId, "<b>" + userInformation['active_name'] + ":</b>\n\n" +
                          "Div: " + str(userInformation['division']) + "\n" +
-                         "Активность:\n" + const.activity[userInformation['activity']] + "\n\n" +
-                         "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n\n" +
+                         "Средняя активность:\n" + const.activity[userInformation['activity']] + "\nАктивность за 5 тренировок:\n" +
+                        activity + '\n\n'
+                         "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n" +
                          "Решено задач: " + str(userInformation['solved']) + "\n" +
                          "Не решено задач: " + str(userInformation['unsolved']) + "\n\n" +
                          "За последние 5 тренировок вы решили: \n" + str(userInformation['solvedLast']) + " " +
