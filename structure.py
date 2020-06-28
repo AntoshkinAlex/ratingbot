@@ -268,15 +268,15 @@ def get_hq_contests():
 def take_contests():
     while True:
         try:
-            # now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-            # if now.hour >= 9:
-            #     now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-            #     now = str(now)
-            #     now = now[0:now.find(' ')]
-            #     if backend.find_weather(now) is None:
-            #         weather(now)
-            # get_hq_contests()
-            # get_contest()
+            now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
+            if now.hour >= 9:
+                now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
+                now = str(now)
+                now = now[0:now.find(' ')]
+                if backend.find_weather(now) is None:
+                    weather(now)
+            get_hq_contests()
+            get_contest()
             get_user_infomation()
             get_all_rating()
             time.sleep(300)
