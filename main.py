@@ -149,6 +149,9 @@ def print_all_rating(chatId):
 
 @bot.message_handler(commands=["start"])
 def start_chat(message):
+    print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(
+        message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))  # логи
+
     backend.insert_user(message.from_user.id)  # запоминаем пользователя в бд
 
     menuKey = ReplyKeyboardMarkup(resize_keyboard=True)  # кнопка меню
