@@ -356,6 +356,48 @@ def get_sortedRating(contestId):
     sortedRating.sort()
     sortedRating.reverse()
     backend.update_contest(contestId, {'sortedRating': sortedRating})
+    rating = table.Texttable()
+    rating.set_deco(table.Texttable.HEADER)
+    rating.set_cols_align(["l", "c"])
+    rating.set_cols_valign(["t", "t"])
+    rating.set_cols_dtype(['t', 't'])
+    rating.add_row(["Фамилия\n", "🏆\n"])
+    space = '  '
+    for index, item in enumerate(sortedRating):
+        userName = backend.get_user(item[1])['name']
+        name = userName[userName.find(' ') + 1:]
+        if index == 9:
+            space = ' '
+        rating.add_row([str(index + 1) + space +
+                        str(name),
+                        str(contest_information['users'][item[1]]['rating']) +
+                        " (" + str(contest_information['users'][item[1]]['solvedCount']) + "/" + str(
+                            contest_information['users'][item[1]]['upsolvedCount']) + ")"
+                        ])
+    backend.update_contest(contestId, {'allRating': rating.draw()})
+    activity = table.Texttable()
+    activity.set_deco(table.Texttable.HEADER)
+    activity.set_cols_align(["l", "c", "c"])
+    activity.set_cols_valign(["t", "t", "t"])
+    activity.set_cols_dtype(['t', 't', 't'])
+    activity.add_row(["Фамилия\n", "Div.\n", "Активность\n"])
+    space = '  '
+    for index, user in enumerate(sortedRating):
+        user_inf = backend.get_user(user[1])
+        user_div = int(user_inf['division'])
+        userName = user_inf['name']
+        name = userName[userName.find(' ') + 1:]
+        user_activity = -1
+        for kol in contest_information['activity'][user_div - 1]:
+            if kol <= contest_information['users'][user[1]]['solvedCount'] + contest_information['users'][user[1]]['upsolvedCount']:
+                user_activity += 1
+        backend.update_contest(contestId, {'users.' + user[1] + '.user_activity': user_activity})
+        if index == 9:
+            space = ' '
+        activity.add_row([str(index + 1) + space + str(name),
+                        str(user_div),
+                        const.activity[user_activity][0]])
+    backend.update_contest(contestId, {'allActivity': activity.draw()})
 
 
 def get_contest():

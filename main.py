@@ -66,29 +66,7 @@ def print_contest_information(chatId, contestId):
     try:
         contest = backend.get_contest_information(contestId)
         contestTop = contest['contestTop']
-        sortedRating = contest['sortedRating']
-        rating = table.Texttable()
-        rating.set_deco(table.Texttable.HEADER)
-        rating.set_cols_align(["l", "c"])
-        rating.set_cols_valign(["t", "t"])
-        rating.set_cols_dtype(['t', 't'])
-        rating.add_row(["Фамилия\n", "🏆\n"])
-        space = '  '
-        for index, item in enumerate(sortedRating):
-            userName = backend.get_user(item[1])['name']
-            name = userName[userName.find(' ') + 1:]
-            if index == 9:
-                space = ' '
-            rating.add_row([str(index + 1) + space +
-                            str(name),
-                            str(contest['users'][item[1]]['rating']) +
-                            " (" + str(contest['users'][item[1]]['solvedCount']) + "/" + str(
-                                contest['users'][item[1]]['upsolvedCount']) + ")"
-                            ])
-    except Exception as err:
-        print('Ошибка при выводе информации о контесте', err)
-
-    try:
+        rating = contest['allRating']
         key = InlineKeyboardMarkup()
         but_1 = InlineKeyboardButton(text="Посмотреть активность",
                                      callback_data="not_admin_contest_id" + str(contestId))
@@ -105,7 +83,7 @@ def print_contest_information(chatId, contestId):
                          struct.declension(contestTop[1][1], "задача", "задачи", "задач") + "\n" +
                          "🥉 " + backend.get_user(contestTop[2][0])['name'] + " - " + str(contestTop[2][1]) + " " +
                          struct.declension(contestTop[2][1], "задача", "задачи", "задач") + "\n\n" +
-                         "Рейтинг за тренировку:\n\n<pre>" + rating.draw() + "</pre>",
+                         "Рейтинг за тренировку:\n\n<pre>" + rating + "</pre>",
                          parse_mode="html", reply_markup=key)
     except Exception as err:
         bot.send_message(chatId, "Произошла ошибка при выводе таблицы контеста", err)

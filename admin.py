@@ -5,6 +5,8 @@ import texttable as table
 
 bot = const.bot
 
+########################################################################################################################
+
 
 def print_admin_user_information(chatId, user):
     try:
@@ -35,18 +37,7 @@ def print_admin_user_information(chatId, user):
         bot.send_message(chatId, "Произошла ошибка")
 
 
-def change_div(message, chat_id):
-    try:
-        user_id = message[message.find('change_div ') + 11: len(message)]
-        user = backend.get_user(user_id)
-        newdiv = user['division'] + 1
-        if newdiv == 4:
-            newdiv = 1
-        backend.update_user(user_id, {'division': newdiv})
-        print_admin_user_information(chat_id, user_id)
-    except Exception as err:
-        print('Не удалось сменить дивизион пользователя', err)
-        bot.send_message(chat_id, 'Не удалось сменить дивизион пользователя')
+########################################################################################################################
 
 
 def change_participant(message, chat_id):
@@ -63,25 +54,7 @@ def change_participant(message, chat_id):
         bot.send_message(chat_id, 'Не удалось поменять состояние участника контеста')
 
 
-def change_name(message, chat_id):
-    try:
-        user_id = message[message.find('change_name ') + 12: len(message)]
-        backend.insert_session(chat_id, 'name', {'user_id': user_id})
-        bot.send_message(chat_id, 'Напишите через пробел имя и фамилию')
-    except Exception as err:
-        print('Произошла ошибка при выводе сообщения об изменении имени', err)
-        bot.send_message(chat_id, 'Произошла ошибка при выводе сообщения об изменении имени')
-
-
-def edit_name(message, chat_id, args):
-    try:
-        user_id = args['user_id']
-        name = message
-        backend.update_user(user_id, {'name': name, 'active_name': name})
-        print_admin_user_information(chat_id, user_id)
-    except Exception as err:
-        print('Произошла ошибка при изменении имени', err)
-        bot.send_message(chat_id, 'Произошла ошибка при изменении имени')
+########################################################################################################################
 
 
 def show_achievements(message, chat_id):
@@ -149,6 +122,9 @@ def new_achievement(message, chat_id, args):
         bot.send_message(chat_id, 'Не удалось добавить новое достижение участнику')
 
 
+########################################################################################################################
+
+
 def show_contest(contestId, chat_id, admin):
     try:
         contest = backend.get_contest_information(contestId)
@@ -164,45 +140,22 @@ def show_contest(contestId, chat_id, admin):
                 contestInformation += str(color[0]) + ': ' + str(activity[num][index]) + '\n'
             contestInformation += '\n'
 
-        sortedRating = contest['sortedRating']
-        rating = table.Texttable()
-        rating.set_deco(table.Texttable.HEADER)
-        rating.set_cols_align(["l", "c", "c"])
-        rating.set_cols_valign(["t", "t", "t"])
-        rating.set_cols_dtype(['t', 't', 't'])
-        rating.add_row(["Фамилия\n", "Div.\n", "Активность\n"])
-        space = '  '
-        for index, user in enumerate(sortedRating):
-            user_inf = backend.get_user(user[1])
-            user_div = int(user_inf['division'])
-            userName = user_inf['name']
-            name = userName[userName.find(' ') + 1:]
-            if admin:
-                user_activity = -1
-                for kol in activity[user_div - 1]:
-                    if kol <= contest['users'][user[1]]['solvedCount'] + contest['users'][user[1]]['upsolvedCount']:
-                        user_activity += 1
-                backend.update_contest(contestId, {'users.' + user[1] + '.user_activity': user_activity})
-            else:
-                user_activity = contest['users'][user[1]]['user_activity']
-
-            if index == 9:
-                space = ' '
-            rating.add_row([str(index + 1) + space + str(name),
-                            str(user_div),
-                            const.activity[user_activity][0]])
+        rating = contest['allActivity']
         if admin:
             key = InlineKeyboardMarkup()
             but_1 = InlineKeyboardButton(text="Изменить активность",
                                          callback_data="choose_div " + str(contestId) + ' ' + str(chat_id))
             key.add(but_1)
-            bot.send_message(chat_id, contestInformation + 'Активность за контест:\n\n<pre>' + rating.draw() + '</pre>', parse_mode="html", reply_markup=key)
+            bot.send_message(chat_id, contestInformation + 'Активность за контест:\n\n<pre>' + rating + '</pre>', parse_mode="html", reply_markup=key)
         else:
-            bot.send_message(chat_id, contestInformation + 'Активность за контест:\n\n<pre>' + rating.draw() + '</pre>',
+            bot.send_message(chat_id, contestInformation + 'Активность за контест:\n\n<pre>' + rating + '</pre>',
                              parse_mode="html")
     except Exception as err:
         print('Не удалось показать информацию о контесте', err)
         bot.send_message(chat_id, 'Не удалось показать информацию о контесте')
+
+
+########################################################################################################################
 
 
 def choose_div(contestId, chat_id):
@@ -229,6 +182,7 @@ def edit_activity(contestId, chat_id, div):
         print('Не удалось добавить сессию для изменения активности', err)
         bot.send_message(chat_id, 'Не удалось добавить сессию для изменения активности')
 
+
 def change_activity(mes, chat_id, args):
     try:
         activity = [0, 0, 0, 0, 0]
@@ -247,3 +201,46 @@ def change_activity(mes, chat_id, args):
         print('Не удалось поменять активность', err)
         bot.send_message(chat_id, 'Не удалось поменять активность')
 
+
+########################################################################################################################
+
+
+def change_name(message, chat_id):
+    try:
+        user_id = message[message.find('change_name ') + 12: len(message)]
+        backend.insert_session(chat_id, 'name', {'user_id': user_id})
+        bot.send_message(chat_id, 'Напишите через пробел имя и фамилию')
+    except Exception as err:
+        print('Произошла ошибка при выводе сообщения об изменении имени', err)
+        bot.send_message(chat_id, 'Произошла ошибка при выводе сообщения об изменении имени')
+
+
+def edit_name(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        name = message
+        backend.update_user(user_id, {'name': name, 'active_name': name})
+        print_admin_user_information(chat_id, user_id)
+    except Exception as err:
+        print('Произошла ошибка при изменении имени', err)
+        bot.send_message(chat_id, 'Произошла ошибка при изменении имени')
+
+
+########################################################################################################################
+
+
+def change_div(message, chat_id):
+    try:
+        user_id = message[message.find('change_div ') + 11: len(message)]
+        user = backend.get_user(user_id)
+        newdiv = user['division'] + 1
+        if newdiv == 4:
+            newdiv = 1
+        backend.update_user(user_id, {'division': newdiv})
+        print_admin_user_information(chat_id, user_id)
+    except Exception as err:
+        print('Не удалось сменить дивизион пользователя', err)
+        bot.send_message(chat_id, 'Не удалось сменить дивизион пользователя')
+
+
+########################################################################################################################
