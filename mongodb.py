@@ -35,9 +35,8 @@ def insert_user(user_id):
             active_name = old_user['active_name']
         if 'notifications' in old_user:
             notifications = old_user['notifications']
-
-    if user_id in const.users_id:
-        handle = const.users_id[user_id]
+        if 'handle' in old_user:
+            handle = old_user['handle']
 
     user = {
         "user_id": user_id,

@@ -23,11 +23,13 @@ def print_admin_user_information(chatId, user):
                                      callback_data="change_participant " + user_id)
         but_3 = InlineKeyboardButton(text="Имя", callback_data="change_name " + user_id)
         but_4 = InlineKeyboardButton(text="Достижения", callback_data="show_achievements " + user_id)
-        key.add(but_1, but_2, but_3, but_4)
+        but_5 = InlineKeyboardButton(text="Хэндл", callback_data="change_handle " + user_id)
+        key.add(but_1, but_2, but_3, but_4, but_5)
         is_participant = "Да"
         if not userInformation['is_participant']:
             is_participant = "Нет"
         mes = "<b>" + userInformation['active_name'] + ":</b>\n\n" + "Дивизион:\n" + str(userInformation['division']) + "\n\n"
+        mes += "Handle: " + userInformation['handle'] + "\n"
         if 'achievements' in userInformation:
             mes += "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n"
         mes += "Является участником контестов: " + is_participant + "\n"
@@ -241,6 +243,30 @@ def change_div(message, chat_id):
     except Exception as err:
         print('Не удалось сменить дивизион пользователя', err)
         bot.send_message(chat_id, 'Не удалось сменить дивизион пользователя')
+
+
+########################################################################################################################
+
+
+def change_handle(message, chat_id):
+    try:
+        user_id = message[message.find('change_handle ') + 14: len(message)]
+        backend.insert_session(chat_id, 'handle', {'user_id': user_id})
+        bot.send_message(chat_id, 'Напишите новый handle пользователя')
+    except Exception as err:
+        print('Произошла ошибка при выводе сообщения об изменении handle', err)
+        bot.send_message(chat_id, 'Произошла ошибка при выводе сообщения об изменении handle')
+
+
+def edit_handle(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        handle = message
+        backend.update_user(user_id, {'handle': handle})
+        print_admin_user_information(chat_id, user_id)
+    except Exception as err:
+        print('Произошла ошибка при изменении имени', err)
+        bot.send_message(chat_id, 'Произошла ошибка при изменении имени')
 
 
 ########################################################################################################################

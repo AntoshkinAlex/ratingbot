@@ -162,6 +162,8 @@ def continue_chat(message):
             admin.change_activity(message.text, message.from_user.id, session['args'])
         elif session['name'] == 'name':
             admin.edit_name(message.text, message.from_user.id, session['args'])
+        elif session['name'] == 'handle':
+            admin.edit_handle(message.text, message.from_user.id, session['args'])
 
     elif message.text == "Меню":
         key = InlineKeyboardMarkup()  # кнопки взаимодействия
@@ -221,6 +223,8 @@ def callback_text(text):
             admin.change_participant(message, text.from_user.id)
         elif message.find('change_name ') != -1:
             admin.change_name(message, text.from_user.id)
+        elif message.find('change_handle ') != -1:
+            admin.change_handle(message, text.from_user.id)
         elif message.find('show_achievements ') != -1:
             admin.show_achievements(message, text.from_user.id)
         elif message.find('achievement: ') != -1:

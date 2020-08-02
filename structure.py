@@ -63,6 +63,16 @@ def get_username(handle):
     return handle[handle.find("=") + 1:]
 
 
+def is_participant(handle):
+    users = backend.get_users({'is_participant': True})
+    is_participant = False
+    for user in users:
+        if user['handle'] == handle:
+            is_participant = True
+    return is_participant
+
+
+
 def get_contest_rating(place, userCount, solved, maxSolved, upsolved, problemCount):
     rating = (200 * (userCount - place + 1) / userCount) * (solved / maxSolved) + 100 * upsolved / problemCount
     return round(rating)
@@ -95,9 +105,9 @@ def get_contest_information(contestId):
         for user in standings['result']['rows']:
             userName = user['party']['members'][0]['handle']
             userName = get_username(userName)
-            if not (userName in const.users_handles):
+            if not is_participant(userName):
                 continue
-            user_id = const.users_handles[userName]
+            user_id = backend.get_users({'handle': userName})[0]['user_id']
             user_inf = backend.get_user(user_id)
             if not (user_inf['is_participant']):
                 continue
@@ -112,9 +122,9 @@ def get_contest_information(contestId):
             if userName.find('=') == -1:
                 continue
             userName = get_username(userName)
-            if not (userName in const.users_handles):
+            if not is_participant(userName):
                 continue
-            user_id = const.users_handles[userName]
+            user_id = backend.get_users({'handle': userName})[0]['user_id']
             user_inf = backend.get_user(user_id)
             if not (user_inf['is_participant']):
                 continue
@@ -178,16 +188,15 @@ def get_contest_information(contestId):
         try:
             for submission in range(len(status['result']) - 1, -1, -1):
                 name = get_username(status['result'][submission]['author']['members'][0]['handle'])
-                if not (name in const.users_handles):
+                if not is_participant(name):
                     continue
-                user_id = const.users_handles[name]
+                user_id = backend.get_users({'handle': name})[0]['user_id']
                 user_inf = backend.get_user(user_id)
                 if not (user_inf['is_participant']):
                     continue
                 if status['result'][submission]['verdict'] == 'OK':
                     contestInformation['firstSubmission'] = {}
-                    contestInformation['firstSubmission']['name'] = const.users_handles[get_username(
-                        status['result'][submission]['author']['members'][0]['handle'])]
+                    contestInformation['firstSubmission']['name'] = backend.get_users({'handle': name})[0]['user_id']
                     contestInformation['firstSubmission']['time'] = status['result'][submission][
                                                                         'relativeTimeSeconds'] // 60
                     break
