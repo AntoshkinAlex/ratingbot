@@ -26,7 +26,6 @@ def get_codeforces_contest_stadings(contestId, apiKey, apiSecret, showUnofficial
     h = hashlib.sha512(s).hexdigest()
 
     url = "http://codeforces.com/api/contest.standings?apiKey="+apiKey+"&contestId="+str(contestId)+"&showUnofficial="+showUnofficial+"&time="+str(t)+"&apiSig=hqhqhq"+h
-    #print(url)
     return get_cf_response(url)
 
 
@@ -37,7 +36,7 @@ def get_codeforces_contest_status(contestId, apiKey, apiSecret):
 
     url = "http://codeforces.com/api/contest.status?apiKey=" + apiKey + "&contestId=" + str(
         contestId) + "&time=" + str(t) + "&apiSig=hqhqhq" + h
-    #print(url)
+
     return get_cf_response(url)
 
 

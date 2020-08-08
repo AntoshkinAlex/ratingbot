@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 from const import MONGODB, MONGODB_LINK
-import const
 
 mdb = MongoClient(MONGODB_LINK)[MONGODB]  # переменная для работы с монго
 
