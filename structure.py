@@ -241,7 +241,7 @@ def reminder():
 
 def get_hq_contests():
     try:
-        for ind in range(2):
+        for ind in range(3):
             hq_contest = req.get_codeforces_contest_list(const.apiKey[ind], const.apiSecret[ind], True)
             for contest in hq_contest['result']:
                 if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
