@@ -23,6 +23,7 @@ def weather(now):
             rate = float(rate)
             rate = round(rate * 100) / 100
             rate = str(rate)
+            print(rate)
         except Exception as err:
             print('Не удалось получить курс', err)
 
@@ -74,7 +75,7 @@ def is_participant(handle):
 
 
 def get_contest_rating(place, userCount, solved, maxSolved, upsolved, problemCount):
-    rating = (200 * (userCount - place + 1) / userCount) * (solved / maxSolved) + 100 * upsolved / problemCount
+    rating = (200 * (userCount - place + 1) / max(1, userCount)) * (solved / maxSolved) + 100 * upsolved / problemCount
     return round(rating)
 
 

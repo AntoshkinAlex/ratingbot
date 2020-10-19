@@ -67,22 +67,29 @@ def print_contest_information(chatId, contestId):
         contest = backend.get_contest_information(contestId)
         contestTop = contest['contestTop']
         rating = contest['allRating']
+        top = ""
+        if len(contestTop) >= 1:
+            top += "Топ:\n" + "🥇 " + backend.get_user(contestTop[0][0])['name'] + " - " + str(contestTop[0][1]) \
+                   + " " + struct.declension(contestTop[0][1], "задача", "задачи", "задач") + "\n"
+        if len(contestTop) >= 2:
+            top += "🥈 " + backend.get_user(contestTop[1][0])['name'] + " - " + str(contestTop[1][1]) \
+                   + " " + struct.declension(contestTop[1][1], "задача", "задачи", "задач") + "\n"
+        if len(contestTop) >= 3:
+            top += "🥉 " + backend.get_user(contestTop[2][0])['name'] + " - " + str(contestTop[2][1]) \
+                   + " " + struct.declension(contestTop[2][1], "задача", "задачи", "задач") + "\n"
+        if len(contestTop) >= 1:
+            top += "\n"
+
+        first_submit = ""
+        if 'firstSubmission' in contest:
+            first_submit = "Первая успешная посылка:\n" + backend.get_user(contest['firstSubmission']['name'])['name'] + "\n"\
+                           + "Время посылки: " + str(contest['firstSubmission']['time']) + " " + \
+                           struct.declension(contest['firstSubmission']['time'], "минута", "минуты", "минут") + "\n\n"
         key = InlineKeyboardMarkup()
         but_1 = InlineKeyboardButton(text="Посмотреть активность",
                                      callback_data="not_admin_contest_id" + str(contestId))
         key.add(but_1)
-        bot.send_message(chatId, "<b>" + contest['name'] + ":</b>\n\n" +
-                         "Первая успешная посылка:\n" + backend.get_user(contest['firstSubmission']['name'])[
-                             'name'] + "\n" +
-                         "Время посылки: " + str(contest['firstSubmission']['time']) + " " + struct.declension(
-            contest['firstSubmission']['time'], "минута", "минуты", "минут") + "\n\n" +
-                         "Топ:\n" +
-                         "🥇 " + backend.get_user(contestTop[0][0])['name'] + " - " + str(contestTop[0][1]) + " " +
-                         struct.declension(contestTop[0][1], "задача", "задачи", "задач") + "\n" +
-                         "🥈 " + backend.get_user(contestTop[1][0])['name'] + " - " + str(contestTop[1][1]) + " " +
-                         struct.declension(contestTop[1][1], "задача", "задачи", "задач") + "\n" +
-                         "🥉 " + backend.get_user(contestTop[2][0])['name'] + " - " + str(contestTop[2][1]) + " " +
-                         struct.declension(contestTop[2][1], "задача", "задачи", "задач") + "\n\n" +
+        bot.send_message(chatId, "<b>" + contest['name'] + ":</b>\n\n" + first_submit + top +
                          "Рейтинг за тренировку:\n\n<pre>" + rating + "</pre>",
                          parse_mode="html", reply_markup=key)
     except Exception as err:
