@@ -52,7 +52,6 @@ def weather(now):
 
             try:
                 bot.send_message(user['user_id'], mes)
-                bot.send_message(user['user_id'], '<b>Мусора - позор России</b>', parse_mode='html')
 
             except Exception as err:
                 print('Пользователь ' + user['name'] + ' удалил чат', err)
