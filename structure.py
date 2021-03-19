@@ -10,20 +10,23 @@ import requests
 from bs4 import BeautifulSoup as BS
 import pytz
 
+
 bot = const.bot
 
 def weather(now):
     try:
         rate = None
         try:
-            r = requests.get('https://yandex.ru/news/quotes/2002.html')
-            html = BS(r.content, 'html.parser')
-            rate = html.find('td', {'class': 'quote__value'}).text
+            DOLLAR_RUB = 'https://www.google.com/search?sxsrf=ALeKk01NWm6viYijAo3HXYOEQUyDEDtFEw%3A1584716087546&source=hp&ei=N9l0XtDXHs716QTcuaXoAg&q=%D0%B4%D0%BE%D0%BB%D0%BB%D0%B0%D1%80+%D0%BA+%D1%80%D1%83%D0%B1%D0%BB%D1%8E&oq=%D0%B4%D0%BE%D0%BB%D0%BB%D0%B0%D1%80+&gs_l=psy-ab.3.0.35i39i70i258j0i131l4j0j0i131l4.3044.4178..5294...1.0..0.83.544.7......0....1..gws-wiz.......35i39.5QL6Ev1Kfk4'
+            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'}
+
+            full_page = requests.get(DOLLAR_RUB, headers=headers)
+            soup = BS(full_page.content, 'html.parser')
+            rate = soup.findAll("span", {"class": "DFlfde", "class": "SwHCTb", "data-precision": 2})[0].text
             rate = rate.replace(',', '.')
             rate = float(rate)
             rate = round(rate * 100) / 100
             rate = str(rate)
-            print(rate)
         except Exception as err:
             print('Не удалось получить курс', err)
 
@@ -46,13 +49,11 @@ def weather(now):
                   "Мин. температура воздуха: " + str(t_min) + '\n' + "Макс. температура воздуха: " \
                   + str(t_max) + '\n\n' + str(text)
 
-
             if rate is not None:
                 mes += '\n\nКурс ЦБ: 1$ = ' + rate + '₽'
 
             try:
                 bot.send_message(user['user_id'], mes)
-
             except Exception as err:
                 print('Пользователь ' + user['name'] + ' удалил чат', err)
 
@@ -245,7 +246,7 @@ def get_hq_contests():
         for ind in range(3):
             hq_contest = req.get_codeforces_contest_list(const.apiKey[ind], const.apiSecret[ind], True)
             for contest in hq_contest['result']:
-                if contest['name'].find("Тренировка HQ №") != -1 and const.authors.count(contest['preparedBy']) != 0:
+                if contest['name'].find("Тренировка H2Q №") != -1 and const.authors.count(contest['preparedBy']) != 0:
                     finished = False
                     if contest['phase'] == 'FINISHED':
                         finished = True
@@ -274,7 +275,6 @@ def get_hq_contests():
     except:
         print('CF UPAL')
 
-
 def take_contests():
     while True:
         try:
@@ -293,7 +293,6 @@ def take_contests():
         except Exception as err:
             print("Ошибка при обновлении бота", err)
             time.sleep(600)
-
 
 def get_user_infomation():
     try:
@@ -338,7 +337,7 @@ def get_user_infomation():
                         user_information[user_id]['last_activities'].append(contest[contestId]['users'][user_id]['user_activity'])
                         user_information[user_id]['activity'] += contest[contestId]['users'][user_id]['user_activity']
 
-            user_information[user_id]['activity'] = round(user_information[user_id]['activity'] / 5.0)
+            user_information[user_id]['activity'] = round(user_information[user_id]['activity'] / min(5, max(1, len(contest))))
             user_inf = backend.get_user(user_id)
             if user_information[user_id]['achievements'] == '' and (
                     'custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not (

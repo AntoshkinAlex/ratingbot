@@ -200,6 +200,8 @@ def continue_chat(message):
             bot.send_photo(message.chat.id, img)
     elif message.text.find('/settings') != -1: # настройки
         print_settings(message.chat.id)
+    elif message.text.find('/send_my_id') != -1:
+        bot.send_message('374683082', "Id: " + str(message.chat.id))
 
 
 @bot.callback_query_handler(func=lambda text: True)
