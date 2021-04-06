@@ -9,16 +9,18 @@ import datetime
 import requests
 from bs4 import BeautifulSoup as BS
 import pytz
-
+from functools import cmp_to_key
 
 bot = const.bot
+
 
 def weather(now):
     try:
         rate = None
         try:
             DOLLAR_RUB = 'https://www.google.com/search?sxsrf=ALeKk01NWm6viYijAo3HXYOEQUyDEDtFEw%3A1584716087546&source=hp&ei=N9l0XtDXHs716QTcuaXoAg&q=%D0%B4%D0%BE%D0%BB%D0%BB%D0%B0%D1%80+%D0%BA+%D1%80%D1%83%D0%B1%D0%BB%D1%8E&oq=%D0%B4%D0%BE%D0%BB%D0%BB%D0%B0%D1%80+&gs_l=psy-ab.3.0.35i39i70i258j0i131l4j0j0i131l4.3044.4178..5294...1.0..0.83.544.7......0....1..gws-wiz.......35i39.5QL6Ev1Kfk4'
-            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'}
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'}
 
             full_page = requests.get(DOLLAR_RUB, headers=headers)
             soup = BS(full_page.content, 'html.parser')
@@ -72,7 +74,6 @@ def is_participant(handle):
         if user['handle'] == handle:
             is_participant = True
     return is_participant
-
 
 
 def get_contest_rating(place, userCount, solved, maxSolved, upsolved, problemCount):
@@ -159,10 +160,6 @@ def get_contest_information(contestId):
                 users[used[i]]['rank'] = top
                 top += 1
 
-        for user in users:
-            users[user]['rating'] = get_contest_rating(users[user]['rank'], official, users[user]['solvedCount'],
-                                                       maxSolved, users[user]['upsolvedCount'], problemCount)
-
         for user in backend.get_users({'is_participant': True}):
             user_id = user['user_id']
             if not (user_id in users):
@@ -170,7 +167,6 @@ def get_contest_information(contestId):
                 users[user_id]['rank'] = 0
                 users[user_id]['solvedCount'] = 0
                 users[user_id]['upsolvedCount'] = 0
-                users[user_id]['rating'] = 0
                 users[user_id]['solved'] = [False for i in range(problemCount)]
                 users[user_id]['upsolved'] = [False for i in range(problemCount)]
 
@@ -236,7 +232,8 @@ def good_luck():
 def reminder():
     for user in backend.get_users({'is_participant': True}):
         try:
-            bot.send_message(user['user_id'], "Бот Сашка напоминает вам о том, что до начала контеста осталось меньше 17 часов! 🖥")
+            bot.send_message(user['user_id'],
+                             "Бот Сашка напоминает вам о том, что до начала контеста осталось меньше 17 часов! 🖥")
         except Exception as err:
             print('Пользователь ' + user['name'] + ' удалил чат', err)
 
@@ -275,6 +272,7 @@ def get_hq_contests():
     except:
         print('CF UPAL')
 
+
 def take_contests():
     while True:
         try:
@@ -293,6 +291,7 @@ def take_contests():
         except Exception as err:
             print("Ошибка при обновлении бота", err)
             time.sleep(600)
+
 
 def get_user_infomation():
     try:
@@ -334,10 +333,12 @@ def get_user_infomation():
                         solvedCountLast += contest[contestId]['users'][user_id]['solvedCount'] + \
                                            contest[contestId]['users'][user_id]['upsolvedCount']
                         allCount += contest[contestId]['problemCount']
-                        user_information[user_id]['last_activities'].append(contest[contestId]['users'][user_id]['user_activity'])
+                        user_information[user_id]['last_activities'].append(
+                            contest[contestId]['users'][user_id]['user_activity'])
                         user_information[user_id]['activity'] += contest[contestId]['users'][user_id]['user_activity']
 
-            user_information[user_id]['activity'] = round(user_information[user_id]['activity'] / min(5, max(1, len(contest))))
+            user_information[user_id]['activity'] = round(
+                user_information[user_id]['activity'] / min(5, max(1, len(contest))))
             user_inf = backend.get_user(user_id)
             if user_information[user_id]['achievements'] == '' and (
                     'custom_achievements' in user_inf and len(user_inf['custom_achievements']) == 0 or not (
@@ -356,57 +357,71 @@ def get_user_infomation():
 
 
 def get_sortedRating(contestId):
-    contest_information = backend.get_contest_information(contestId)
-    sortedRating = []
-    for user in contest_information['users']:
-        sortedRating.append(
-            [contest_information['users'][user]['rating'], user]
-        )
-    sortedRating.sort()
-    sortedRating.reverse()
-    backend.update_contest(contestId, {'sortedRating': sortedRating})
-    rating = table.Texttable()
-    rating.set_deco(table.Texttable.HEADER)
-    rating.set_cols_align(["l", "c"])
-    rating.set_cols_valign(["t", "t"])
-    rating.set_cols_dtype(['t', 't'])
-    rating.add_row(["Фамилия\n", "🏆\n"])
-    space = '  '
-    for index, item in enumerate(sortedRating):
-        userName = backend.get_user(item[1])['name']
-        name = userName[userName.find(' ') + 1:]
-        if index == 9:
-            space = ' '
-        rating.add_row([str(index + 1) + space +
-                        str(name),
-                        str(contest_information['users'][item[1]]['rating']) +
-                        " (" + str(contest_information['users'][item[1]]['solvedCount']) + "/" + str(
-                            contest_information['users'][item[1]]['upsolvedCount']) + ")"
-                        ])
-    backend.update_contest(contestId, {'allRating': rating.draw()})
-    activity = table.Texttable()
-    activity.set_deco(table.Texttable.HEADER)
-    activity.set_cols_align(["l", "c", "c"])
-    activity.set_cols_valign(["t", "t", "t"])
-    activity.set_cols_dtype(['t', 't', 't'])
-    activity.add_row(["Фамилия\n", "Div.\n", "Активность\n"])
-    space = '  '
-    for index, user in enumerate(sortedRating):
-        user_inf = backend.get_user(user[1])
-        user_div = int(user_inf['division'])
-        userName = user_inf['name']
-        name = userName[userName.find(' ') + 1:]
-        user_activity = -1
-        for kol in contest_information['activity'][user_div - 1]:
-            if kol <= contest_information['users'][user[1]]['solvedCount'] + contest_information['users'][user[1]]['upsolvedCount']:
-                user_activity += 1
-        backend.update_contest(contestId, {'users.' + user[1] + '.user_activity': user_activity})
-        if index == 9:
-            space = ' '
-        activity.add_row([str(index + 1) + space + str(name),
-                        str(user_div),
-                        const.activity[user_activity][0]])
-    backend.update_contest(contestId, {'allActivity': activity.draw()})
+    try:
+        contest_information = backend.get_contest_information(contestId)
+        sortedRating = []
+        for user in contest_information['users']:
+            sortedRating.append(
+                [contest_information['users'][user]['solvedCount'], contest_information['users'][user]['upsolvedCount'],
+                 user]
+            )
+
+        def compare(x, y):
+            if x[0] + x[1] > y[0] + y[1] or x[0] + x[1] == y[0] + y[1] and x[0] > y[0]:
+                return -1
+            elif x[0] + x[1] < y[0] + y[1] or x[0] + x[1] == y[0] + y[1] and x[0] < y[0]:
+                return 1
+            else:
+                return 0
+
+        sortedRating = sorted(sortedRating, key=cmp_to_key(compare))
+        backend.update_contest(contestId, {'sortedRating': sortedRating})
+        rating = table.Texttable()
+        rating.set_deco(table.Texttable.HEADER)
+        rating.set_cols_align(["l", "c", "r"])
+        rating.set_cols_valign(["t", "t", "t"])
+        rating.set_cols_dtype(['t', 't', 't'])
+        rating.add_row(["Фамилия\n", "🏆\n", "Задачи"])
+        space = '  '
+        for index, item in enumerate(sortedRating):
+            userName = backend.get_user(item[2])['name']
+            name = userName[userName.find(' ') + 1:]
+            if index == 9:
+                space = ' '
+            rating.add_row([str(index + 1) + space +
+                            str(name),
+                            str(contest_information['users'][item[2]]['solvedCount'] +
+                                contest_information['users'][item[2]]['upsolvedCount']),
+                            str(contest_information['users'][item[2]]['solvedCount']) + "/" + str(
+                                contest_information['users'][item[2]]['upsolvedCount'])
+                            ])
+        backend.update_contest(contestId, {'allRating': rating.draw()})
+        activity = table.Texttable()
+        activity.set_deco(table.Texttable.HEADER)
+        activity.set_cols_align(["l", "c", "c"])
+        activity.set_cols_valign(["t", "t", "t"])
+        activity.set_cols_dtype(['t', 't', 't'])
+        activity.add_row(["Фамилия\n", "Div.\n", "Активность\n"])
+        space = '  '
+        for index, user in enumerate(sortedRating):
+            user_inf = backend.get_user(user[2])
+            user_div = int(user_inf['division'])
+            userName = user_inf['name']
+            name = userName[userName.find(' ') + 1:]
+            user_activity = -1
+            for kol in contest_information['activity'][user_div - 1]:
+                if kol <= contest_information['users'][user[2]]['solvedCount'] + \
+                        contest_information['users'][user[2]]['upsolvedCount']:
+                    user_activity += 1
+            backend.update_contest(contestId, {'users.' + user[2] + '.user_activity': user_activity})
+            if index == 9:
+                space = ' '
+            activity.add_row([str(index + 1) + space + str(name),
+                              str(user_div),
+                              const.activity[user_activity][0]])
+        backend.update_contest(contestId, {'allActivity': activity.draw()})
+    except Exception as err:
+        print('Ошибка при получении отсортированного рейтинга за контест', err)
 
 
 def get_contest():
@@ -436,16 +451,27 @@ def get_all_rating():
             for user in contest['users']:
                 is_participant = backend.get_user(user)['is_participant']
                 if is_participant:
-                    hq_rating[user] += contest['users'][user]['rating']
+                    hq_rating[user] += contest['users'][user]['solvedCount'] + contest['users'][user]['upsolvedCount']
                     solved[user] += contest['users'][user]['solvedCount']
                     upsolved[user] += contest['users'][user]['upsolvedCount']
 
-        hq_rating = sorted(hq_rating.items(), key=operator.itemgetter(1))
-        hq_rating.reverse()
+        rating = []
 
+        def compare(x, y):
+            if x[1] > y[1] or x[1] == y[1] and solved[x[0]] > solved[y[0]]:
+                return -1
+            elif x[1] < y[1] or x[1] == y[1] and solved[x[0]] < solved[y[0]]:
+                return 1
+            else:
+                return 0
+
+        for item in hq_rating.items():
+            rating.append([item[0], item[1]])
+
+        rating = sorted(rating, key=cmp_to_key(compare))
         hq_rating_information = {}
 
-        for item in hq_rating:
+        for item in rating:
             user = item[0]
             hq_rating_information[user] = {}
             hq_rating_information[user]['solved'] = solved[user]
@@ -470,8 +496,8 @@ def get_all_rating():
                 print_rating.add_row([str(index + 1) + space +
                                       name,
                                       str(hq_rating_information[user]['rating']),
-                                      str(hq_rating_information[user]['upsolved'] + hq_rating_information[user][
-                                          'solved'])
+                                      str(hq_rating_information[user]['solved']) + "/" +
+                                      str(hq_rating_information[user]['upsolved'])
                                       ])
             backend.update_rating({'rating': print_rating.draw()})
         except Exception as err:

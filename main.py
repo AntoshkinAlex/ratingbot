@@ -134,74 +134,75 @@ def print_all_rating(chatId):
 
 @bot.message_handler(commands=["start"])
 def start_chat(message):
-    print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(
-        message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))  # логи
+    if message.chat.type == "private":
+        print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(
+            message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))  # логи
 
-    backend.insert_user(message.from_user.id)  # запоминаем пользователя в бд
+        backend.insert_user(message.from_user.id)  # запоминаем пользователя в бд
 
-    menuKey = ReplyKeyboardMarkup(resize_keyboard=True)  # кнопка меню
-    menuBut = KeyboardButton(text="Меню")
-    menuKey.add(menuBut)
+        menuKey = ReplyKeyboardMarkup(resize_keyboard=True)  # кнопка меню
+        menuBut = KeyboardButton(text="Меню")
+        menuKey.add(menuBut)
 
-    key = InlineKeyboardMarkup() # кнопки взаимодействия
-    but_1 = InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
-    but_2 = InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
-    but_3 = InlineKeyboardButton(text="Личная информация", callback_data="getuser")
-    key.add(but_1, but_2)
-    key.add(but_3)
+        key = InlineKeyboardMarkup() # кнопки взаимодействия
+        but_1 = InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
+        but_3 = InlineKeyboardButton(text="Личная информация", callback_data="getuser")
+        key.add(but_1, but_3)
 
-    bot.send_message(message.chat.id, "Привет", reply_markup=menuKey)
-    bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
+        bot.send_message(message.chat.id, "Привет", reply_markup=menuKey)
+        bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
 
 
 @bot.message_handler(content_types=["text"])
 def continue_chat(message):
-    backend.insert_user(message.from_user.id)  # запоминаем пользователя в бд
-    print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(
-        message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))  # логи
+    if message.chat.type == "private":
+        backend.insert_user(message.from_user.id)  # запоминаем пользователя в бд
+        print(str(message.chat.id) + ' ' + str(message.from_user.username) + ' ' + str(
+            message.from_user.first_name) + ' ' + str(message.from_user.last_name) + ': ' + str(message.text))  # логи
 
-    if backend.find_session(message.from_user.id) is not None:  # проверка сессий
-        session = backend.find_session(message.from_user.id)
-        backend.erase_session(message.from_user.id)
-        if session['name'] == 'achievement':
-            admin.new_achievement(message.text, message.from_user.id, session['args'])
-        elif session['name'] == 'change_contest_activity':
-            admin.change_activity(message.text, message.from_user.id, session['args'])
-        elif session['name'] == 'name':
-            admin.edit_name(message.text, message.from_user.id, session['args'])
-        elif session['name'] == 'handle':
-            admin.edit_handle(message.text, message.from_user.id, session['args'])
+        if backend.find_session(message.from_user.id) is not None:  # проверка сессий
+            session = backend.find_session(message.from_user.id)
+            backend.erase_session(message.from_user.id)
+            if session['name'] == 'achievement':
+                admin.new_achievement(message.text, message.from_user.id, session['args'])
+            elif session['name'] == 'change_contest_activity':
+                admin.change_activity(message.text, message.from_user.id, session['args'])
+            elif session['name'] == 'name':
+                admin.edit_name(message.text, message.from_user.id, session['args'])
+            elif session['name'] == 'handle':
+                admin.edit_handle(message.text, message.from_user.id, session['args'])
 
-    elif message.text == "Меню":
-        key = InlineKeyboardMarkup()  # кнопки взаимодействия
-        but_1 = InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
-        but_2 = InlineKeyboardButton(text="Рейтинг", callback_data="getrating")
-        but_3 = InlineKeyboardButton(text="Личная информация", callback_data="getuser")
-        key.add(but_1, but_2)
-        key.add(but_3)
-        bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
-    elif message.text.find('/all ') != -1 and str(message.chat.id) in const.admins:  # вывод сообщения всем пользователям
-        for user in backend.get_users({}):
-            userId = user['user_id']
-            try:
-                bot.send_message(userId, message.text[message.text.find('/all ') + 5: len(message.text)])
-            except Exception as err:
-                print('Пользователь ' + userId + ' удалил чат', err)
-    elif message.text.find('/admin') != -1:
-        if str(message.chat.id) in const.admins:
+        elif message.text == "Меню":
             key = InlineKeyboardMarkup()  # кнопки взаимодействия
-            but_1 = InlineKeyboardButton(text="Пользователи", callback_data="admin_users")
-            but_2 = InlineKeyboardButton(text="Контесты", callback_data="admin_contests")
-            key.add(but_1)
-            key.add(but_2)
+            but_1 = InlineKeyboardButton(text="Тренировки", callback_data="getcontest")
+            but_3 = InlineKeyboardButton(text="Личная информация", callback_data="getuser")
+            key.add(but_1, but_3)
             bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
-        else:
-            img = open('Who_are_u?.jpg', 'rb')
-            bot.send_photo(message.chat.id, img)
-    elif message.text.find('/settings') != -1: # настройки
-        print_settings(message.chat.id)
-    elif message.text.find('/send_my_id') != -1:
-        bot.send_message('374683082', "Id: " + str(message.chat.id))
+        elif message.text.find('/all ') != -1 and str(message.chat.id) in const.admins:  # вывод сообщения всем пользователям
+            for user in backend.get_users({}):
+                userId = user['user_id']
+                try:
+                    bot.send_message(userId, message.text[message.text.find('/all ') + 5: len(message.text)])
+                except Exception as err:
+                    print('Пользователь ' + userId + ' удалил чат', err)
+        elif message.text.find('/admin') != -1:
+            if str(message.chat.id) in const.admins:
+                key = InlineKeyboardMarkup()  # кнопки взаимодействия
+                but_1 = InlineKeyboardButton(text="Пользователи", callback_data="admin_users")
+                but_2 = InlineKeyboardButton(text="Контесты", callback_data="admin_contests")
+                key.add(but_1)
+                key.add(but_2)
+                bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
+            else:
+                img = open('Who_are_u?.jpg', 'rb')
+                bot.send_photo(message.chat.id, img)
+        elif message.text.find('/settings') != -1: # настройки
+            print_settings(message.chat.id)
+        elif message.text.find('/send_my_id') != -1:
+            bot.send_message('374683082', "Id: " + str(message.chat.id))
+    elif message.chat.type == "supergroup":
+        if message.text == "/rating@HQcontests_bot":
+            print_all_rating(message.chat.id)
 
 
 @bot.callback_query_handler(func=lambda text: True)
@@ -213,8 +214,6 @@ def callback_text(text):
             text.from_user.first_name) + ' ' + str(text.from_user.last_name) + ': ' + str(message))  # логи
         if message == "getcontest":
             print_contests(text.message.chat.id, '')
-        elif message == "getrating":
-            print_all_rating(text.message.chat.id)
         elif message == "getuser":
             print_users(text.message.chat.id, 'info', False)
         elif message.find('infologin: ') != -1:
