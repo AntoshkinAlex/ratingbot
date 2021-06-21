@@ -1,7 +1,7 @@
 import hashlib
 import time
 from pip._vendor import requests
-import const
+import error
 
 
 count_response = 0
@@ -64,6 +64,10 @@ def get_contestName(contestId, apiKey, apiSecret):
         return None
 
 
-#print(get_codeforces_contest_list(True))
-#print(get_codeforces_contest_stadings(273749, True))
-#print(get_codeforces_contest_status(273749))
+def checkHandle(handle):
+    try:
+        url = "http://codeforces.com/api/user.info?handles=" + handle
+        result = get_cf_response(url)
+        return result['status'] == 'OK'
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при при проверке handle Codeforces пользователя' + str(err))

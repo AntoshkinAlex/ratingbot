@@ -1,9 +1,24 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import const
 import mongodb as backend
-import texttable as table
+import error
+import keyboard
+import text
+import re
+from datetime import date
+import index as codeforces
 
 bot = const.bot
+
+
+def Check(userId):
+    userId = str(userId)
+    return backend.find_admin(userId) or MainAdmin(userId)
+
+
+def MainAdmin(chatId):
+    return str(chatId) == const.mainAdmin
+
 
 ########################################################################################################################
 
@@ -28,7 +43,8 @@ def print_admin_user_information(chatId, user):
         is_participant = "Да"
         if not userInformation['is_participant']:
             is_participant = "Нет"
-        mes = "<b>" + userInformation['active_name'] + ":</b>\n\n" + "Дивизион:\n" + str(userInformation['division']) + "\n\n"
+        mes = "<b>" + userInformation['active_name'] + ":</b>\n\n" + "Дивизион:\n" + str(
+            userInformation['division']) + "\n\n"
         mes += "Handle: " + userInformation['handle'] + "\n"
         if 'achievements' in userInformation:
             mes += "Достижения:\n" + userInformation['achievements'] + "\n" + userAchievements + "\n"
@@ -37,23 +53,6 @@ def print_admin_user_information(chatId, user):
     except Exception as err:
         print('Ошибка при выводе личной информации админу', err)
         bot.send_message(chatId, "Произошла ошибка")
-
-
-########################################################################################################################
-
-
-def change_participant(message, chat_id):
-    try:
-        user_id = message[message.find('change_participant ') + 19: len(message)]
-        user = backend.get_user(user_id)
-        newparticipant = True
-        if user['is_participant']:
-            newparticipant = False
-        backend.update_user(user_id, {'is_participant': newparticipant})
-        print_admin_user_information(chat_id, user_id)
-    except Exception as err:
-        print('Не удалось поменять состояние участника контеста', err)
-        bot.send_message(chat_id, 'Не удалось поменять состояние участника контеста')
 
 
 ########################################################################################################################
@@ -148,7 +147,8 @@ def show_contest(contestId, chat_id, admin):
             but_1 = InlineKeyboardButton(text="Изменить активность",
                                          callback_data="choose_div " + str(contestId) + ' ' + str(chat_id))
             key.add(but_1)
-            bot.send_message(chat_id, contestInformation + 'Активность за контест:\n\n<pre>' + rating + '</pre>', parse_mode="html", reply_markup=key)
+            bot.send_message(chat_id, contestInformation + 'Активность за контест:\n\n<pre>' + rating + '</pre>',
+                             parse_mode="html", reply_markup=key)
         else:
             bot.send_message(chat_id, contestInformation + 'Активность за контест:\n\n<pre>' + rating + '</pre>',
                              parse_mode="html")
@@ -178,7 +178,8 @@ def choose_div(contestId, chat_id):
 
 def edit_activity(contestId, chat_id, div):
     try:
-        bot.send_message(chat_id, "Напишите через пробел количество задач, которые надо решить для дивизиона " + str(div) + ", в следующем порядке 🟠 🟡 🟢 🟣")
+        bot.send_message(chat_id, "Напишите через пробел количество задач, которые надо решить для дивизиона " + str(
+            div) + ", в следующем порядке 🟠 🟡 🟢 🟣")
         backend.insert_session(chat_id, 'change_contest_activity', {'contest_id': contestId, 'div': div})
     except Exception as err:
         print('Не удалось добавить сессию для изменения активности', err)
@@ -191,7 +192,7 @@ def change_activity(mes, chat_id, args):
         mes += ' '
         pos = 1
         while mes.find(' ') != -1:
-            s = mes[0 : mes.find(' ')]
+            s = mes[0: mes.find(' ')]
             activity[pos] = int(s)
             pos += 1
             mes = mes[mes.find(' ') + 1: len(mes)]
@@ -205,28 +206,137 @@ def change_activity(mes, chat_id, args):
 
 
 ########################################################################################################################
-
-
-def change_name(message, chat_id):
-    try:
-        user_id = message[message.find('change_name ') + 12: len(message)]
-        backend.insert_session(chat_id, 'name', {'user_id': user_id})
-        bot.send_message(chat_id, 'Напишите через пробел имя и фамилию')
-    except Exception as err:
-        print('Произошла ошибка при выводе сообщения об изменении имени', err)
-        bot.send_message(chat_id, 'Произошла ошибка при выводе сообщения об изменении имени')
-
+# НАСТРОЙКИ ПОЛЬЗОВАТЕЛЯ
 
 def edit_name(message, chat_id, args):
     try:
         user_id = args['user_id']
+        old_message_id = args['message_id']
+        user = backend.get_user(user_id)
         name = message
-        backend.update_user(user_id, {'name': name, 'active_name': name})
-        print_admin_user_information(chat_id, user_id)
+        if 'confirmation' not in user:
+            user['confirmation'] = {}
+        user['confirmation']['name'] = name
+        backend.update_user(user_id, {'confirmation': user['confirmation']})
+        new_text = text.SettingsInfo(user_id, chat_id)
+        try:
+            bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+        except:
+            ...
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
     except Exception as err:
-        print('Произошла ошибка при изменении имени', err)
-        bot.send_message(chat_id, 'Произошла ошибка при изменении имени')
+        error.Log(errorAdminText='❗Произошла ошибка при изменении имени пользователя' + str(err),
+                  userId=chat_id, errorUserText='Произошла ошибка')
 
+
+def edit_birthday(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        old_message_id = args['message_id']
+        user = backend.get_user(user_id)
+        birthday = re.split(r'[.]', message)
+        try:
+            date(int(birthday[2]), int(birthday[1]), int(birthday[0]))
+        except:
+            bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+            bot.send_message(chat_id, 'Введена некорректная дата: ' + message)
+            return
+        if 'confirmation' not in user:
+            user['confirmation'] = {}
+        user['confirmation']['birthday'] = message
+        backend.update_user(user_id, {'confirmation': user['confirmation']})
+        new_text = text.SettingsInfo(user_id, chat_id)
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+        try:
+            bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+        except:
+            ...
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при изменении даты рождения пользователя' + str(err),
+                  userId=chat_id, errorUserText='Произошла ошибка')
+
+
+def edit_handleCF(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        old_message_id = args['message_id']
+        user = backend.get_user(user_id)
+        handle = message
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+        if not codeforces.checkHandle(handle):
+            bot.send_message(chat_id, 'Хэндла не существует: ' + message)
+            return
+        if 'confirmation' not in user:
+            user['confirmation'] = {}
+        user['confirmation']['codeforces_handle'] = handle
+        backend.update_user(user_id, {'confirmation': user['confirmation']})
+        new_text = text.SettingsInfo(user_id, chat_id)
+        try:
+            bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+        except:
+            ...
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при изменении handleCF пользователя' + str(err),
+                  userId=chat_id, errorUserText='Произошла ошибка')
+
+
+def edit_handleHQ(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        old_message_id = args['message_id']
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+        if not (Check(chat_id)):
+            bot.send_message(chat_id, 'Вы не админ.')
+            return
+        backend.update_user(user_id, {'handle': message})
+        new_text = text.SettingsInfo(user_id, chat_id)
+        try:
+            bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+        except:
+            ...
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при изменении handle HQ пользователя' + str(err),
+                  userId=chat_id, errorUserText='Произошла ошибка')
+
+
+def confirm_user(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        old_message_id = args['message_id']
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+        if not (Check(chat_id)):
+            bot.send_message(chat_id, 'Вы не админ.')
+            return
+        user = backend.get_user(user_id)
+        if message == '/confirm':
+            backend.update_user(user_id, user['confirmation'])
+        backend.update_user(user_id, {'confirmation': {}})
+        new_text = text.SettingsInfo(user_id, chat_id)
+        try:
+            bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+        except:
+            ...
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при изменении handle HQ пользователя' + str(err),
+                  userId=chat_id, errorUserText='Произошла ошибка')
+
+
+def delete_user(message, chat_id, args):
+    try:
+        user_id = args['user_id']
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+        if message != '12345':
+            bot.send_message(chat_id, 'Вы ввели неправильный код.')
+            return
+        backend.delete_user(user_id)
+        bot.send_message(chat_id, 'Пользователь успешно удалён.')
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при удалении пользователя' + str(err))
 
 ########################################################################################################################
 
@@ -243,30 +353,3 @@ def change_div(message, chat_id):
     except Exception as err:
         print('Не удалось сменить дивизион пользователя', err)
         bot.send_message(chat_id, 'Не удалось сменить дивизион пользователя')
-
-
-########################################################################################################################
-
-
-def change_handle(message, chat_id):
-    try:
-        user_id = message[message.find('change_handle ') + 14: len(message)]
-        backend.insert_session(chat_id, 'handle', {'user_id': user_id})
-        bot.send_message(chat_id, 'Напишите новый handle пользователя')
-    except Exception as err:
-        print('Произошла ошибка при выводе сообщения об изменении handle', err)
-        bot.send_message(chat_id, 'Произошла ошибка при выводе сообщения об изменении handle')
-
-
-def edit_handle(message, chat_id, args):
-    try:
-        user_id = args['user_id']
-        handle = message
-        backend.update_user(user_id, {'handle': handle})
-        print_admin_user_information(chat_id, user_id)
-    except Exception as err:
-        print('Произошла ошибка при изменении имени', err)
-        bot.send_message(chat_id, 'Произошла ошибка при изменении имени')
-
-
-########################################################################################################################

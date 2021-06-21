@@ -13,39 +13,32 @@ def get_user(user_id):
         print("Ошибка при взятии пользователя из базы данных", err)
 
 
-def insert_user(user_id):
+def insert_user(user_id, alias=None):
     user_id = str(user_id)
-    handle = ""
-    is_participant = False
-    division = 1
     old_user = get_user(user_id)
-    name = user_id
-    active_name = name
-    notifications = True
-    if old_user is not None:
-        if 'division' in old_user:
-            division = old_user['division']
-        if 'is_participant' in old_user:
-            is_participant = old_user['is_participant']
-        if 'name' in old_user:
-            name = old_user['name']
-            active_name = name
-        if 'active_name' in old_user:
-            active_name = old_user['active_name']
-        if 'notifications' in old_user:
-            notifications = old_user['notifications']
-        if 'handle' in old_user:
-            handle = old_user['handle']
-
+    if alias is not None:
+        alias = '@' + alias
     user = {
+        "active_name": user_id,
+        "alias": alias,
+        "birthday": None,
+        "codeforces_handle": None,
+        "confirmation": {},
+        "division": 1,
+        "handle": None,
+        "is_participant": False,
+        "name": '⭕️',
+        "notifications": True,
         "user_id": user_id,
-        "handle": handle,
-        "is_participant": is_participant,
-        "division": division,
-        "name": name,
-        "active_name": active_name,
-        "notifications": notifications
     }
+
+    if old_user is not None:
+        fields = ['active_name', 'birthday', 'codeforces_handle', 'division', 'handle', 'is_participant', 'name',
+                  'notifications', 'confirmation']
+        for field in fields:
+            if field in old_user:
+                user[field] = old_user[field]
+
     try:
         mdb.users.update_one({"user_id": user_id}, {'$set': user}, upsert=True)
     except Exception as err:
@@ -59,6 +52,14 @@ def update_user(user_id, keys):
         mdb.users.update_one({"user_id": user_id}, {'$set': keys}, upsert=True)
     except Exception as err:
         print("Ошибка при обновлении пользователя в базе данных", err)
+
+
+def delete_user(user_id):
+    user_id = str(user_id)
+    try:
+        mdb.users.delete_many({"user_id": user_id})
+    except Exception as err:
+        print("Ошибка при удалении пользователя в базе данных", err)
 
 
 def get_users(params):
@@ -130,3 +131,19 @@ def add_weather(date):
 def find_weather(date):
     for day in mdb.weather.find({"date": date}):
         return day
+
+
+def insert_admin(chat_id):
+    mdb.admin.insert({"adminId": chat_id})
+
+
+def find_admin(chat_id):
+    chat_id = str(chat_id)
+    for admin in mdb.admin.find({"adminId": chat_id}):
+        return True
+    return False
+
+
+def delete_admin(chat_id):
+    chat_id = str(chat_id)
+    mdb.admin.delete_many({"adminId": chat_id})
