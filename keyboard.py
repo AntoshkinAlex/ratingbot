@@ -24,7 +24,7 @@ def InlineInfo():
 def InlineProfile(userId, chatId):
     userId = str(userId)  # id пользователя
     chatId = str(chatId)
-
+    is_admin = admin.Check(chatId)
     keyboard = InlineKeyboardMarkup()  # клавиатура с изменением настроек пользователя
     nameBut = InlineKeyboardButton(text="Фамилия Имя", callback_data="inline_profile_change_name_id" + userId)
     birthdayBut = InlineKeyboardButton(text="Дата рождения",
@@ -33,12 +33,12 @@ def InlineProfile(userId, chatId):
                                      callback_data="inline_profile_change_handleCF_id" + userId)
     notificationsBut = InlineKeyboardButton(text="Вкл/выкл уведомления",
                                             callback_data="inline_profile_change_notifications_id" + userId)
-    if admin.Check(chatId) or userId == chatId:
+    if is_admin or userId == chatId:
         keyboard.add(nameBut)
         keyboard.add(birthdayBut)
         keyboard.add(handleCFBut)
         keyboard.add(notificationsBut)
-    if admin.Check(chatId):
+    if is_admin:
         handleHQBut = InlineKeyboardButton(text="Хэндл HQ Contests", callback_data="inline_profile_change_handleHQ_id" + userId)
         participantBut = InlineKeyboardButton(text="Является участником HQ", callback_data="inline_profile_change_is_participant_id" + userId)
         confirmationBut = InlineKeyboardButton(text="Подтвердить профиль ✅", callback_data="inline_profile_change_confirmation_id" + userId)
@@ -55,40 +55,41 @@ def InlineProfile(userId, chatId):
 
 def InlineUsers(chatId):
     try:
+        chatId = str(chatId)
+        is_admin = admin.Check(chatId)
         keyboard = InlineKeyboardMarkup()  # клавиатура с пользователями
         params = {}
-        if not(admin.Check(chatId)):
+        if not is_admin:
             params = {'is_participant': True}
         backend_users = backend.get_users(params)
         good_users = []
         for user in backend_users:
             user_name = user['name'][: user['name'].find(' ')]
             new_user = [user_name, user['user_id']]
-            if 'confirmation' in user and admin.Check(chatId):
-                new_user.append(user['confirmation'])
+            if 'confirmation' in user and user['confirmation'] != {} and is_admin:
+                new_user.append(True)
             else:
-                new_user.append({})
+                new_user.append(False)
             good_users.append(new_user)
-
         good_users.sort()
-
         if len(good_users) % 2:
             good_users.append([' ', 'None'])
         line_count = len(good_users) // 2
         for i in range(line_count):
             def checkConfirmation(confirm):
-                if admin.Check(chatId) and confirm != {}:
+                if is_admin and confirm:
                     return ' ⚠️'
                 else:
                     return ''
             user = good_users[i]
-            leftBut = InlineKeyboardButton(text=user[0] + checkConfirmation(user[2]), callback_data="inline_users_id" + user[1])
+            leftBut = InlineKeyboardButton(text=user[0] + checkConfirmation(user[2]),
+                                           callback_data="inline_users_id" + user[1])
             user = good_users[line_count + i]
-
             if user[1] == 'None':
                 rightBut = InlineKeyboardButton(text=user[0], callback_data='Null')
             else:
-                rightBut = InlineKeyboardButton(text=user[0] + checkConfirmation(user[2]), callback_data="inline_users_id" + user[1])
+                rightBut = InlineKeyboardButton(text=user[0] + checkConfirmation(user[2]),
+                                                callback_data="inline_users_id" + user[1])
             keyboard.add(leftBut, rightBut)
         return keyboard
     except Exception as err:

@@ -6,9 +6,10 @@ def SettingsInfo(userId, chatId):
         userId = str(userId)
         chatId = str(chatId)
         user = backend.get_user(userId)
+        is_admin = admin.Check(chatId)
 
         def CheckConfirmationStatus(key):
-            if 'confirmation' in user and key in user['confirmation'] and (admin.Check(chatId) or userId == chatId):
+            if 'confirmation' in user and key in user['confirmation'] and (is_admin or userId == chatId):
                 return False
             else:
                 return True
@@ -20,7 +21,7 @@ def SettingsInfo(userId, chatId):
                 return str(user[key])
 
         def StatusFlag(key):
-            if admin.Check(chatId) or userId == chatId:
+            if is_admin or userId == chatId:
                 if CheckConfirmationStatus(key):
                     return ' ✅'
                 else:
@@ -41,7 +42,7 @@ def SettingsInfo(userId, chatId):
 
         text = "*Профиль пользователя:*\n\n"
         for field in fields:
-            if (field == 'handle' or field == 'is_admin') and not(admin.Check(chatId)):
+            if (field == 'handle' or field == 'is_admin') and not(is_admin):
                 continue
             text += f"{fields[field]}: "
             if field == 'is_admin':
@@ -56,7 +57,7 @@ def SettingsInfo(userId, chatId):
                 text += '`——`'
             text += "\n"
 
-        if admin.Check(chatId) or userId == chatId:
+        if is_admin or userId == chatId:
             text += '\n⚠️ - ожидает подтверждения администратором️\n'
 
         text += ' '  # пустой символ, чтобы не удалялся перевод строки в конце
