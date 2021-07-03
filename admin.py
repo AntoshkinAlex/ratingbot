@@ -221,7 +221,7 @@ def edit_name(message, chat_id, args):
         new_text = text.SettingsInfo(user_id, chat_id)
         try:
             bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
-                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='html')
         except:
             ...
         bot.delete_message(chat_id=chat_id, message_id=args['delete'])
@@ -250,7 +250,7 @@ def edit_birthday(message, chat_id, args):
         bot.delete_message(chat_id=chat_id, message_id=args['delete'])
         try:
             bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
-                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='html')
         except:
             ...
     except Exception as err:
@@ -275,7 +275,7 @@ def edit_handleCF(message, chat_id, args):
         new_text = text.SettingsInfo(user_id, chat_id)
         try:
             bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
-                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='html')
         except:
             ...
     except Exception as err:
@@ -295,7 +295,7 @@ def edit_handleHQ(message, chat_id, args):
         new_text = text.SettingsInfo(user_id, chat_id)
         try:
             bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
-                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='html')
         except:
             ...
     except Exception as err:
@@ -318,7 +318,7 @@ def confirm_user(message, chat_id, args):
         new_text = text.SettingsInfo(user_id, chat_id)
         try:
             bot.edit_message_text(chat_id=chat_id, message_id=old_message_id, text=new_text,
-                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+                                  reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='html')
         except:
             ...
     except Exception as err:

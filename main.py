@@ -128,7 +128,7 @@ def start_chat(message):
 
         backend.insert_user(message.from_user.id, alias=message.from_user.username)  # запоминаем пользователя в бд
         bot.send_message(message.chat.id, "Привет", reply_markup=keyboard.Menu())
-        bot.send_message(message.chat.id, "Выберите:", reply_markup=keyboard.InlineInfo())
+        # bot.send_message(message.chat.id, "Выберите:", reply_markup=keyboard.InlineInfo())
 
 
 @bot.message_handler(content_types=["text"])
@@ -170,11 +170,11 @@ def continue_chat(message):
                     bot.delete_message(message.from_user.id, message.message_id)
                     admin.confirm_user(message.text, userId, session['args'])
 
-            elif message.text == "Меню":
-                bot.send_message(userId, "Выберите:", reply_markup=keyboard.InlineInfo())
+            # elif message.text == "Меню":
+            #     bot.send_message(userId, "Выберите:", reply_markup=keyboard.InlineInfo())
             elif message.text == "Профиль 👨‍💻":
                 bot.send_message(userId, text_creator.SettingsInfo(userId, userId),
-                                 reply_markup=keyboard.InlineProfile(userId, userId), parse_mode='MarkdownV2')
+                                 reply_markup=keyboard.InlineProfile(userId, userId), parse_mode='html')
             elif message.text == "Пользователи 👥":
                 bot.send_message(userId, 'Выберите пользователя:',
                                  reply_markup=keyboard.InlineUsers(userId))
@@ -219,7 +219,7 @@ def callback_text(text):
         elif re.match('inline_users_id', message) is not None:  # настройки профиля
             userId = re.split('inline_users_id', message, maxsplit=1)[1]
             bot.send_message(chatId, text_creator.SettingsInfo(userId, chatId),
-                             reply_markup=keyboard.InlineProfile(userId, chatId), parse_mode='MarkdownV2')
+                             reply_markup=keyboard.InlineProfile(userId, chatId), parse_mode='html')
 
         elif message == "getcontest":
             print_contests(chatId, '')

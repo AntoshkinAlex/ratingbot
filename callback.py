@@ -52,7 +52,7 @@ def InlineProfile(data, callback):
             new_text = text.SettingsInfo(user_id, chat_id)
             try:
                 bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=new_text,
-                                      reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+                                      reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='html')
             except:
                 ...
         except Exception as err:
@@ -86,7 +86,7 @@ def InlineProfile(data, callback):
                     new_text = text.SettingsInfo(user_id, chat_id)
                     try:
                         bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=new_text,
-                                              reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='MarkdownV2')
+                                              reply_markup=keyboard.InlineProfile(user_id, chat_id), parse_mode='html')
                     except:
                         ...
                 except Exception as err:

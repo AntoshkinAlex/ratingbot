@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup as BS
 import pytz
 from functools import cmp_to_key
+import re
 
 bot = const.bot
 
@@ -45,7 +46,7 @@ def weather(now):
         backend.add_weather(now)
         for user in backend.get_users({'notifications': True}):
             name = '!'
-            if user['name'] != user['user_id']:
+            if user['name'] != '⭕':
                 name = ', ' + user['name'] + '!'
             mes = "Доброе утро" + name + "\n\n" + "Бот Сашка подготовил прогноз погоды на сегодня:\n\n" + \
                   "Мин. температура воздуха: " + str(t_min) + '\n' + "Макс. температура воздуха: " \
@@ -58,6 +59,23 @@ def weather(now):
                 bot.send_message(user['user_id'], mes)
             except Exception as err:
                 print('Пользователь ' + user['name'] + ' удалил чат', err)
+
+        users = backend.get_users({'is_participant': True})
+        all = backend.get_users({'is_participant': True})
+        now = re.split(r'[-]', now)
+        now.reverse()
+        for user in users:
+            if 'birthday' in user and user['birthday'] is not None:
+                day = re.split(r'[.]', user['birthday'])
+                if day[0] == now[0] and day[1] == now[1]:
+                    for one in all:
+                        try:
+                            if one['user_id'] != user['user_id']:
+                                bot.send_message(one['user_id'], 'Сегодня ' + user['name'] + ' празднует день рождения🎉!')
+                            else:
+                                bot.send_message(one['user_id'], 'Бот Сашка поздравляет тебя с днём твоего рождения🎉!')
+                        except Exception as err:
+                            print('Пользователь ' + one['name'] + ' удалил чат', err)
 
     except Exception as err:
         print('Не получилось сделать прогноз погоды', err)

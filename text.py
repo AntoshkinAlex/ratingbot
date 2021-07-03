@@ -7,6 +7,7 @@ def SettingsInfo(userId, chatId):
         chatId = str(chatId)
         user = backend.get_user(userId)
         is_admin = admin.Check(chatId)
+        is_confirmed = True
 
         def CheckConfirmationStatus(key):
             if 'confirmation' in user and key in user['confirmation'] and (is_admin or userId == chatId):
@@ -25,48 +26,47 @@ def SettingsInfo(userId, chatId):
                 if CheckConfirmationStatus(key):
                     return ' ✅'
                 else:
+                    nonlocal is_confirmed
+                    is_confirmed = False
                     return ' ⚠️'
             else:
                 return ''
 
         fields = {
             'name': 'Фамилия Имя',
-            'birthday': 'Дата рождения',
-            'alias': 'Telegram username',
-            'codeforces_handle': 'Хэндл на Сodeforces',
-            'notifications': 'Ежедневные уведомления',
-            'handle': 'Хэндл на HQ Contest',
+            'birthday': 'День рождения',
+            'alias': 'Telegram',
+            'codeforces_handle': 'Хэндл',
+            'notifications': 'Уведомления',
+            'handle': 'Хэндл HQ',
             'is_participant': 'Участник HQ',
-            'is_admin': 'Является админом'
+            'is_admin': 'Админ'
         }
 
-        text = "*Профиль пользователя:*\n\n"
+        text = "<b>Профиль пользователя:</b>\n\n"
         for field in fields:
-            if (field == 'handle' or field == 'is_admin') and not(is_admin):
+            if (field == 'handle' or field == 'is_admin' or field == 'is_participant') and not(is_admin):
                 continue
-            text += f"{fields[field]}: "
+            if field == 'notifications' and not(is_admin) and userId != chatId:
+                continue
+            text += f"{fields[field]}: \t"
             if field == 'is_admin':
                 text += '🟢' if admin.Check(userId) else '🔴'
-                continue
-            if field in user and user[field] is not None or not(CheckConfirmationStatus(field)):
-                if field == 'notifications' or field == 'is_participant' or field == 'is_admin':
+            elif field in user and user[field] is not None or not(CheckConfirmationStatus(field)):
+                if field == 'notifications' or field == 'is_participant':
                     text += '🟢' if user[field] else '🔴'
                 else:
-                    text += f"`{UnconfirmedText(field)}`{StatusFlag(field)}"
+                    if field == 'alias':
+                        text += f"{UnconfirmedText(field)}"
+                    else:
+                        text += f"<code>{UnconfirmedText(field)}</code>"
+                    text += StatusFlag(field)
             else:
-                text += '`——`'
+                text += f"<code>——</code>"
             text += "\n"
 
-        if is_admin or userId == chatId:
+        if (is_admin or userId == chatId) and not is_confirmed:
             text += '\n⚠️ - ожидает подтверждения администратором️\n'
-
-        text += ' '  # пустой символ, чтобы не удалялся перевод строки в конце
-
-        pos = 0
-        while text.find('-', pos) != pos and text.find('-', pos) != -1:  # в telegram зарезервирован '-', нужно перед ним добавить '\' (все хэндлы с дефисом # пишутся)
-            pos = text.find('-', pos)
-            text = text[:pos] + '\-' + text[pos + 1:]
-            pos += 2
 
         return text
     except Exception as err:
