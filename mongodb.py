@@ -48,6 +48,8 @@ def insert_user(user_id, alias=None):
 
 def update_user(user_id, keys):
     user_id = str(user_id)
+    if keys == {}:
+        return
     try:
         mdb.users.update_one({"user_id": user_id}, {'$set': keys}, upsert=True)
     except Exception as err:

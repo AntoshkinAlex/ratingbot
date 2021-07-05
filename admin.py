@@ -244,7 +244,16 @@ def edit_birthday(message, chat_id, args):
             return
         if 'confirmation' not in user:
             user['confirmation'] = {}
-        user['confirmation']['birthday'] = message
+
+        # формат ДД.ММ.ГГГГ
+        while len(birthday[0]) < 2:
+            birthday[0] = '0' + birthday[0]
+        while len(birthday[1]) < 2:
+            birthday[1] = '0' + birthday[1]
+        while len(birthday[2]) < 4:
+            birthday[2] = '0' + birthday[2]
+
+        user['confirmation']['birthday'] = birthday[0] + '.' + birthday[1] + '.' + birthday[2]
         backend.update_user(user_id, {'confirmation': user['confirmation']})
         new_text = text.SettingsInfo(user_id, chat_id)
         bot.delete_message(chat_id=chat_id, message_id=args['delete'])
