@@ -71,3 +71,4 @@ def SettingsInfo(userId, chatId):
         return text
     except Exception as err:
         print(err, 'Произошла ошибка при сборке текста для настроек')
+

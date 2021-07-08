@@ -71,6 +71,9 @@ def get_users(params):
         print("Ошибка при взятии пользователей из базы данных", err)
 
 
+# ===========================================================
+
+
 def update_contest(contest_id, keys):
     contest_id = str(contest_id)
     try:
@@ -101,6 +104,9 @@ def get_rating():
         return rating
 
 
+# ===========================================================
+
+
 def insert_session(chat_id, name, args):
     chat_id = str(chat_id)
     session = {
@@ -124,6 +130,8 @@ def erase_session(chat_id):
     chat_id = str(chat_id)
     mdb.sessions.delete_many({"chat_id": chat_id})
 
+# ===========================================================
+
 
 def add_weather(date):
     mdb.weather.delete_many({})
@@ -134,6 +142,8 @@ def find_weather(date):
     for day in mdb.weather.find({"date": date}):
         return day
 
+
+# ===========================================================
 
 def insert_admin(chat_id):
     mdb.admin.insert({"adminId": chat_id})
@@ -149,3 +159,41 @@ def find_admin(chat_id):
 def delete_admin(chat_id):
     chat_id = str(chat_id)
     mdb.admin.delete_many({"adminId": chat_id})
+
+
+# ===========================================================
+
+
+def insert_team():
+    mdb.teams.insert({"name": 'Новая команда'})
+
+
+def find_team(name):
+    name = str(name)
+    for team in mdb.teams.find({"name": name}):
+        return team
+
+
+def update_team(name, keys):
+    name = str(name)
+    if keys == {}:
+        return
+    try:
+        mdb.teams.update_one({"name": name}, {'$set': keys}, upsert=True)
+    except Exception as err:
+        print("Ошибка при обновлении команды в базе данных", err)
+
+
+def delete_team(name):
+    name = str(name)
+    mdb.teams.delete_many({"name": name})
+
+
+def get_teams(params):
+    try:
+        return mdb.teams.find(params)
+    except Exception as err:
+        print("Ошибка при взятии команд из базы данных", err)
+
+
+# ===========================================================

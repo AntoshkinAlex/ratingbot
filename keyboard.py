@@ -7,10 +7,19 @@ def Menu():
     menuKey = ReplyKeyboardMarkup(resize_keyboard=True)
     menuBut = KeyboardButton(text="Меню")
     profileBut = KeyboardButton(text="Профиль 👨‍💻")
-    usersBut = KeyboardButton(text="Пользователи 👥")
-    menuKey.add(menuBut, usersBut)
-    menuKey.add(profileBut)
+    usersBut = KeyboardButton(text="Пользователи 👤")
+    teamBut = KeyboardButton(text="Команды 👥")
+    menuKey.add(menuBut, profileBut)
+    menuKey.add(teamBut, usersBut)
     return menuKey
+
+
+def YesNo():
+    keyboard = InlineKeyboardMarkup()
+    yesBut = InlineKeyboardButton(text="Да", callback_data="yes")
+    noBut = InlineKeyboardButton(text="Нет", callback_data="no")
+    keyboard.add(yesBut, noBut)
+    return keyboard
 
 
 def InlineInfo():
@@ -33,6 +42,10 @@ def InlineProfile(userId, chatId):
                                      callback_data="inline_profile_change_handleCF_id" + userId)
     notificationsBut = InlineKeyboardButton(text="Уведомления🎺",
                                             callback_data="inline_profile_change_notifications_id" + userId)
+    backBut = InlineKeyboardButton(text="⬅️",
+                                   callback_data="inline_profile_change_back")
+    if userId != chatId:
+        keyboard.add(backBut)
     if is_admin or userId == chatId:
         keyboard.add(nameBut, birthdayBut)
         keyboard.add(handleCFBut, notificationsBut)
@@ -66,6 +79,8 @@ def InlineUsers(chatId):
                 new_user.append(True)
             else:
                 new_user.append(False)
+            if new_user[1] == chatId:
+                continue
             good_users.append(new_user)
         good_users.sort()
         if len(good_users) % 2:
@@ -90,3 +105,45 @@ def InlineUsers(chatId):
         return keyboard
     except Exception as err:
         error.Log(errorAdminText='❗Произошла ошибка при создании клавиатуры с пользователями' + str(err))
+
+
+def InlineTeams(chatId):
+    try:
+        chatId = str(chatId)
+        is_admin = admin.Check(chatId)
+        keyboard = InlineKeyboardMarkup()  # клавиатура с командами
+
+        teams = backend.get_teams({})
+        for team in teams:
+            teamBut = InlineKeyboardButton(text=team['name'],
+                                           callback_data="inline_teams_team_name_" + team['name'])
+            keyboard.add(teamBut)
+
+        if is_admin:
+            newTeamBut = InlineKeyboardButton(text='Создать команду',
+                                           callback_data="inline_teams_new_team")
+            keyboard.add(newTeamBut)
+
+        return keyboard
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при создании клавиатуры с командами' + str(err))
+
+
+def TeamSettings(chatId, team):
+    try:
+        chatId = str(chatId)
+        is_admin = admin.Check(chatId)
+        if is_admin is False:
+            return
+        keyboard = InlineKeyboardMarkup()  # клавиатура команды
+
+        addParticipantsBut = InlineKeyboardButton(text="Участники",
+                                                  callback_data="inline_teams_settings_participants_" + team['name'])
+        changeNameBut = InlineKeyboardButton(text="Название",
+                                             callback_data="inline_teams_settings_change_name_" + team['name'])
+        deleteBut = InlineKeyboardButton(text="Удалить ❌", callback_data="inline_teams_settings_delete_" + team['name'])
+        keyboard.add(addParticipantsBut, changeNameBut)
+        keyboard.add(deleteBut)
+        return keyboard
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при создании клавиатуры с настройками команды' + str(err))

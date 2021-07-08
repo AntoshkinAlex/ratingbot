@@ -350,6 +350,35 @@ def delete_user(message, chat_id, args):
 ########################################################################################################################
 
 
+def change_team_name(newName, chat_id, args):
+    try:
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+        oldName = args['teamName']
+        if backend.find_team(newName) is not None:
+            bot.send_message(chat_id, 'Команда с таким названием уже существует.')
+        else:
+            backend.update_team(oldName, {'name': newName})
+            team = backend.find_team(newName)
+            bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text='Инфа о команде',
+                                  reply_markup=keyboard.TeamSettings(chat_id, team), parse_mode='html')
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при обновлении названия команды' + str(err))
+
+
+def delete_team(text, chat_id, args):
+    try:
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+        name = args['teamName']
+        if text == "yes":
+            backend.delete_team(name)
+            bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text='Выберите команду',
+                                  reply_markup=keyboard.InlineTeams(chat_id), parse_mode='html')
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при обновлении названия команды' + str(err))
+
+
+########################################################################################################################
+
 def change_div(message, chat_id):
     try:
         user_id = message[message.find('change_div ') + 11: len(message)]

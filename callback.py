@@ -57,6 +57,16 @@ def InlineProfile(data, callback):
                 ...
         except Exception as err:
             error.Log(errorAdminText='❗Произошла ошибка при изменении администрирования пользователя ' + str(err))
+    elif re.match('back', callback) is not None:
+        try:
+            chat_id = data.from_user.id
+            try:
+                bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text='Выберите пользователя:',
+                                      reply_markup=keyboard.InlineUsers(chat_id))
+            except:
+                ...
+        except Exception as err:
+            error.Log(errorAdminText='❗Произошла ошибка при изменении возвращении к списку пользователей ' + str(err))
 
     for field in fields:
         if re.match(field, callback) is not None:
@@ -93,3 +103,42 @@ def InlineProfile(data, callback):
                     error.Log(errorAdminText='❗Произошла ошибка при изменении состояния ' + field + ' ' + str(err),
                               userId=chat_id, errorUserText='Произошла ошибка')
             change_field(callback, str(data.from_user.id))
+
+
+def InlineTeams(data, callback):
+    chat_id = data.from_user.id
+    is_admin = admin.Check(chat_id)
+    if re.match('new_team', callback) is not None and is_admin:
+        if backend.find_team('Новая команда') is not None:
+            bot.send_message(chat_id, 'Новая команда уже создана. Измените её название, чтобы создать ещё одну команду.')
+            return
+        backend.insert_team()
+        message_id = bot.send_message(chat_id, 'Введите название команды').message_id
+        backend.insert_session(chat_id=chat_id, name='inline_teams_change_name',
+                               args={'teamName': 'Новая команда', 'delete': message_id, 'message_id': data.message.id})
+    elif re.match('team_name', callback) is not None:
+        name = re.split('team_name_', callback, maxsplit=1)[1]
+        team = backend.find_team(name)
+        if team is None:
+            bot.send_message(chat_id=chat_id, text='Такой команды больше не существует.')
+            return
+        bot.send_message(chat_id=chat_id, text='Тут будет инфа о команде ' + team['name'],
+                         reply_markup=keyboard.TeamSettings(chat_id, team))
+
+    elif re.match('settings_participants', callback) is not None:
+        name = re.split('settings_participants_', callback, maxsplit=1)[1]
+        team = backend.find_team(name)
+        bot.send_message(chat_id=chat_id, text='Тут будут настройки')
+    elif re.match('settings_change_name', callback) is not None:
+        name = re.split('settings_change_name_', callback, maxsplit=1)[1]
+        team = backend.find_team(name)
+        message_id = bot.send_message(chat_id, 'Введите новое название команды. Для отмены введите /cancel.').message_id
+        backend.insert_session(chat_id=chat_id, name='inline_teams_change_name',
+                               args={'teamName': team['name'], 'delete': message_id, 'message_id': data.message.id})
+    elif re.match('settings_delete', callback) is not None:
+        name = re.split('settings_delete_', callback, maxsplit=1)[1]
+        team = backend.find_team(name)
+        message_id = bot.send_message(chat_id=chat_id, text='Вы точно хотите удалить команду?',
+                                      reply_markup=keyboard.YesNo()).message_id
+        backend.insert_session(chat_id=chat_id, name='inline_teams_settings_delete',
+                               args={'teamName': team['name'], 'delete': message_id, 'message_id': data.message.id})

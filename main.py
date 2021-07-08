@@ -169,15 +169,21 @@ def continue_chat(message):
                 elif session['name'] == 'inline_profile_change_confirmation':
                     bot.delete_message(message.from_user.id, message.message_id)
                     admin.confirm_user(message.text, userId, session['args'])
+                elif session['name'] == 'inline_teams_change_name':
+                    bot.delete_message(message.from_user.id, message.message_id)
+                    admin.change_team_name(message.text, userId, session['args'])
 
             # elif message.text == "Меню":
             #     bot.send_message(userId, "Выберите:", reply_markup=keyboard.InlineInfo())
             elif message.text == "Профиль 👨‍💻":
                 bot.send_message(userId, text_creator.SettingsInfo(userId, userId),
                                  reply_markup=keyboard.InlineProfile(userId, userId), parse_mode='html')
-            elif message.text == "Пользователи 👥":
+            elif message.text == "Пользователи 👤":
                 bot.send_message(userId, 'Выберите пользователя:',
                                  reply_markup=keyboard.InlineUsers(userId))
+            elif message.text == "Команды 👥":
+                bot.send_message(userId, 'Выберите команду:',
+                                 reply_markup=keyboard.InlineTeams(userId))
 
             elif message.text.find('/all ') != -1 and admin.Check(userId):  # вывод сообщения всем пользователям
                 for user in backend.get_users({}):
@@ -185,19 +191,7 @@ def continue_chat(message):
                         bot.send_message(user['user_id'], message.text[message.text.find('/all ') + 5: len(message.text)])
                     except Exception as err:
                         print('Пользователь ' + user['user_id'] + ' удалил чат', err)
-            elif message.text.find('/admin') != -1:
-                if admin.Check(userId):
-                    key = InlineKeyboardMarkup()  # кнопки взаимодействия
-                    but_1 = InlineKeyboardButton(text="Пользователи", callback_data="admin_users")
-                    but_2 = InlineKeyboardButton(text="Контесты", callback_data="admin_contests")
-                    key.add(but_1)
-                    key.add(but_2)
-                    bot.send_message(message.chat.id, "Выберите:", reply_markup=key)
-                else:
-                    img = open('Who_are_u?.jpg', 'rb')
-                    bot.send_photo(userId, img)
-            elif message.text.find('/send_my_id') != -1:
-                bot.send_message('374683082', "Id: " + userId)
+
         elif message.chat.type == "supergroup":
             if message.text == "/rating@HQcontests_bot":
                 print_all_rating(message.chat.id)
@@ -209,17 +203,30 @@ def continue_chat(message):
 @bot.callback_query_handler(func=lambda text: True)
 def callback_text(text):
     chatId = text.from_user.id
-    backend.erase_session(chatId)  # удаление сессии при нажатии на кнопку
     try:
         message = text.data
         print(str(text.message.chat.id) + ' ' + str(text.from_user.username) + ' ' + str(
             text.from_user.first_name) + ' ' + str(text.from_user.last_name) + ': ' + str(message))  # логи
+
+        if backend.find_session(chatId) is not None:  # проверка сессий
+            session = backend.find_session(chatId)
+            backend.erase_session(chatId) # удаление сессии при нажатии на кнопку
+            if message == '/cancel' and 'delete' in session['args']:
+                bot.delete_message(message.from_user.id, message.message_id)
+                bot.delete_message(chat_id=chatId, message_id=session['args']['delete'])
+                return
+            if session['name'] == 'inline_teams_settings_delete':
+                admin.delete_team(message, chatId, session['args'])
+
+
         if re.match('inline_profile_change_', message) is not None:  # настройки профиля
             callback.InlineProfile(text, re.split('inline_profile_change_', message, maxsplit=1)[1])
         elif re.match('inline_users_id', message) is not None:  # настройки профиля
             userId = re.split('inline_users_id', message, maxsplit=1)[1]
-            bot.send_message(chatId, text_creator.SettingsInfo(userId, chatId),
+            bot.edit_message_text(chat_id=chatId, message_id=text.message.id, text=text_creator.SettingsInfo(userId, chatId),
                              reply_markup=keyboard.InlineProfile(userId, chatId), parse_mode='html')
+        elif re.match('inline_teams_', message) is not None: # команды
+            callback.InlineTeams(text, re.split('inline_teams_', message, maxsplit=1)[1])
 
         elif message == "getcontest":
             print_contests(chatId, '')
