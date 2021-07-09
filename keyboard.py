@@ -118,11 +118,11 @@ def InlineTeams(chatId):
         teams = backend.get_teams({})
         sorted_teams = []
         for team in teams:
-            sorted_teams.append(team['name'])
+            sorted_teams.append([team['name'], team['number']])
         sorted_teams.sort()
         for team in sorted_teams:
-            teamBut = InlineKeyboardButton(text=team,
-                                           callback_data="inline_teams_team_name_" + team)
+            teamBut = InlineKeyboardButton(text=team[0],
+                                           callback_data="inline_teams_team_number_" + team[1])
             keyboard.add(teamBut)
 
         if is_admin:
@@ -135,13 +135,13 @@ def InlineTeams(chatId):
         error.Log(errorAdminText='❗Произошла ошибка при создании клавиатуры с командами' + str(err))
 
 
-def TeamSettings(chatId, teamName):
+def TeamSettings(chatId, teamNumber):
     try:
         chatId = str(chatId)
         is_admin = admin.Check(chatId)
 
         keyboard = InlineKeyboardMarkup()  # клавиатура команды
-        team = backend.find_team(teamName)
+        team = backend.find_team(teamNumber)
 
         backBut = InlineKeyboardButton(text="⬅️",
                                        callback_data="inline_teams_settings_back")
@@ -154,17 +154,17 @@ def TeamSettings(chatId, teamName):
         good_users.sort()
         for user in good_users:
             nameBut = InlineKeyboardButton(text=user[0],
-                                           callback_data="inline_users_id_team" + user[1] + '+' + str(team['name']))
+                                           callback_data="inline_users_id_team" + user[1] + '+' + str(team['number']))
             keyboard.add(nameBut)
 
         if is_admin is False:
             return keyboard
 
         addParticipantsBut = InlineKeyboardButton(text="Участники",
-                                                  callback_data="inline_teams_settings_participants_" + team['name'])
+                                                  callback_data="inline_teams_settings_participants_" + str(team['number']))
         changeNameBut = InlineKeyboardButton(text="Название",
-                                             callback_data="inline_teams_settings_change_name_" + team['name'])
-        deleteBut = InlineKeyboardButton(text="Удалить ❌", callback_data="inline_teams_settings_delete_" + team['name'])
+                                             callback_data="inline_teams_settings_change_name_" + str(team['number']))
+        deleteBut = InlineKeyboardButton(text="Удалить ❌", callback_data="inline_teams_settings_delete_" + str(team['number']))
 
         keyboard.add(addParticipantsBut, changeNameBut)
         keyboard.add(deleteBut)
@@ -173,17 +173,17 @@ def TeamSettings(chatId, teamName):
         error.Log(errorAdminText='❗Произошла ошибка при создании клавиатуры с настройками команды' + str(err))
 
 
-def ParticipantsSettings(chatId, teamName):
+def ParticipantsSettings(chatId, teamNumber):
     try:
         chatId = str(chatId)
         is_admin = admin.Check(chatId)
         if not is_admin:
             return
-        team = backend.find_team(teamName)
+        team = backend.find_team(teamNumber)
         keyboard = InlineKeyboardMarkup()  # клавиатура с пользователями
 
         backBut = InlineKeyboardButton(text="⬅️",
-                                       callback_data="inline_teams_settings_change_participants_back" + str(team['name']))
+                                       callback_data="inline_teams_settings_change_participants_back" + str(team['number']))
         keyboard.add(backBut)
 
         params = {'is_participant': True}
@@ -192,7 +192,7 @@ def ParticipantsSettings(chatId, teamName):
         for user in backend_users:
             user_name = user['name'][: user['name'].find(' ')]
             new_user = [user_name, user['user_id']]
-            if 'team' in user and user['team'] == teamName:
+            if 'team' in user and user['team'] == teamNumber:
                 new_user.append(2)
             elif 'team' in user and user['team'] is not None:
                 new_user.append(1)
@@ -213,13 +213,13 @@ def ParticipantsSettings(chatId, teamName):
                     return ' ❌'
             user = good_users[i]
             leftBut = InlineKeyboardButton(text=user[0] + checkParticipant(user[2]),
-                                           callback_data="inline_teams_settings_change_participant_id" + user[1] + '+' + str(team['name']))
+                                           callback_data="inline_teams_settings_change_participant_id" + user[1] + '+' + str(team['number']))
             user = good_users[line_count + i]
             if user[1] == 'None':
                 rightBut = InlineKeyboardButton(text=user[0], callback_data='Null')
             else:
                 rightBut = InlineKeyboardButton(text=user[0] + checkParticipant(user[2]),
-                                                callback_data="inline_teams_settings_change_participant_id" + user[1] + '+' + str(team['name']))
+                                                callback_data="inline_teams_settings_change_participant_id" + user[1] + '+' + str(team['number']))
             keyboard.add(leftBut, rightBut)
         return keyboard
     except Exception as err:

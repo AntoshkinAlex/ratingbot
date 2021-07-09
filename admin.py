@@ -346,7 +346,7 @@ def delete_user(message, chat_id, args):
         if 'team' in user and user['team'] is not None:
             team = backend.find_team(user['team'])
             team['participants'].remove(user_id)
-            backend.update_team(team['name'], {'participants': team['participants']})
+            backend.update_team(team['number'], {'participants': team['participants']})
         backend.delete_user(user_id)
         bot.send_message(chat_id, 'Пользователь успешно удалён.')
     except Exception as err:
@@ -358,16 +358,13 @@ def delete_user(message, chat_id, args):
 def change_team_name(newName, chat_id, args):
     try:
         bot.delete_message(chat_id=chat_id, message_id=args['delete'])
-        oldName = args['teamName']
-        if backend.find_team(newName) is not None:
-            bot.send_message(chat_id, 'Команда с таким названием уже существует.')
-        else:
-            backend.update_team(oldName, {'name': newName})
-            team = backend.find_team(newName)
-            for user in team['participants']:
-                backend.update_user(user, {'team': newName})
-            bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text=text.TeamInfo(chat_id, newName),
-                                  reply_markup=keyboard.TeamSettings(chat_id, newName), parse_mode='html')
+        number = args['teamNumber']
+        backend.update_team(number, {'name': newName})
+        team = backend.find_team(number)
+        for user in team['participants']:
+            backend.update_user(user, {'team': number})
+        bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text=text.TeamInfo(chat_id, number),
+                              reply_markup=keyboard.TeamSettings(chat_id, number), parse_mode='html')
     except Exception as err:
         error.Log(errorAdminText='❗Произошла ошибка при обновлении названия команды' + str(err))
 
@@ -375,16 +372,16 @@ def change_team_name(newName, chat_id, args):
 def delete_team(text, chat_id, args):
     try:
         bot.delete_message(chat_id=chat_id, message_id=args['delete'])
-        name = args['teamName']
+        number = args['teamNumber']
         if text == "yes":
-            team = backend.find_team(name)
+            team = backend.find_team(number)
             for user in team['participants']:
                 backend.update_user(user, {'team': None})
-            backend.delete_team(name)
+            backend.delete_team(number)
             bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text='Выберите команду',
                                   reply_markup=keyboard.InlineTeams(chat_id), parse_mode='html')
     except Exception as err:
-        error.Log(errorAdminText='❗Произошла ошибка при обновлении названия команды' + str(err))
+        error.Log(errorAdminText='❗Произошла ошибка при удалении команды' + str(err))
 
 
 ########################################################################################################################

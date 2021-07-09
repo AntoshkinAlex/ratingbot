@@ -4,6 +4,15 @@ from const import MONGODB, MONGODB_LINK
 mdb = MongoClient(MONGODB_LINK)[MONGODB]  # переменная для работы с монго
 
 
+def get_teamNumber():
+    for value in mdb.consts.find({"name": "teamNumber"}):
+        number = value['value']
+        mdb.consts.update({"name": "teamNumber"}, {'value': number + 1})
+        return number
+
+# ===========================================================
+
+
 def get_user(user_id):
     user_id = str(user_id)
     try:
@@ -165,28 +174,30 @@ def delete_admin(chat_id):
 
 
 def insert_team():
-    mdb.teams.insert({"name": 'Новая команда', 'participants': []})
+    number = str(get_teamNumber())
+    mdb.teams.insert({"number": number, "name": 'Новая команда', 'participants': []})
+    return number
 
 
-def find_team(name):
-    name = str(name)
-    for team in mdb.teams.find({"name": name}):
+def find_team(number):
+    number = str(number)
+    for team in mdb.teams.find({"number": number}):
         return team
 
 
-def update_team(name, keys):
-    name = str(name)
+def update_team(number, keys):
+    number = str(number)
     if keys == {}:
         return
     try:
-        mdb.teams.update_one({"name": name}, {'$set': keys}, upsert=True)
+        mdb.teams.update_one({"number": number}, {'$set': keys}, upsert=True)
     except Exception as err:
         print("Ошибка при обновлении команды в базе данных", err)
 
 
-def delete_team(name):
-    name = str(name)
-    mdb.teams.delete_many({"name": name})
+def delete_team(number):
+    number = str(number)
+    mdb.teams.delete_many({"number": number})
 
 
 def get_teams(params):

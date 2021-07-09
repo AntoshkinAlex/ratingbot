@@ -62,9 +62,9 @@ def InlineProfile(data, callback):
             chat_id = data.from_user.id
             try:
                 if re.match('back_team_', callback) is not None:
-                    name = re.split('back_team_', callback, maxsplit=1)[1]
-                    bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, name),
-                                          reply_markup=keyboard.TeamSettings(chat_id, name))
+                    number = re.split('back_team_', callback, maxsplit=1)[1]
+                    bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, number),
+                                          reply_markup=keyboard.TeamSettings(chat_id, number))
                 else:
                     bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text='Выберите пользователя:',
                                           reply_markup=keyboard.InlineUsers(chat_id))
@@ -117,62 +117,61 @@ def InlineTeams(data, callback):
         if backend.find_team('Новая команда') is not None:
             bot.send_message(chat_id, 'Новая команда уже создана. Измените её название, чтобы создать ещё одну команду.')
             return
-        backend.insert_team()
+        number = backend.insert_team()
         message_id = bot.send_message(chat_id, 'Введите название команды').message_id
         backend.insert_session(chat_id=chat_id, name='inline_teams_change_name',
-                               args={'teamName': 'Новая команда', 'delete': message_id, 'message_id': data.message.id})
-    elif re.match('team_name', callback) is not None:
-        name = re.split('team_name_', callback, maxsplit=1)[1]
-        if backend.find_team(name) is None:
+                               args={'teamNumber': number, 'delete': message_id, 'message_id': data.message.id})
+    elif re.match('team_number', callback) is not None:
+        number = re.split('team_number_', callback, maxsplit=1)[1]
+        if backend.find_team(number) is None:
             bot.send_message(chat_id=chat_id, text='Такой команды больше не существует.')
             return
-        bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, name),
-                              reply_markup=keyboard.TeamSettings(chat_id, name))
+        bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, number),
+                              reply_markup=keyboard.TeamSettings(chat_id, number))
 
     elif re.match('settings_participants', callback) is not None:
-        name = re.split('settings_participants_', callback, maxsplit=1)[1]
-        bot.send_message(chat_id=chat_id, text=text.TeamInfo(chat_id, name), reply_markup=keyboard.ParticipantsSettings(chat_id, name))
+        number = re.split('settings_participants_', callback, maxsplit=1)[1]
+        bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, number),
+                              reply_markup=keyboard.ParticipantsSettings(chat_id, number))
     elif re.match('settings_change_name', callback) is not None:
-        name = re.split('settings_change_name_', callback, maxsplit=1)[1]
-        team = backend.find_team(name)
+        number = re.split('settings_change_name_', callback, maxsplit=1)[1]
         message_id = bot.send_message(chat_id, 'Введите новое название команды. Для отмены введите /cancel.').message_id
         backend.insert_session(chat_id=chat_id, name='inline_teams_change_name',
-                               args={'teamName': team['name'], 'delete': message_id, 'message_id': data.message.id})
+                               args={'teamNumber': number, 'delete': message_id, 'message_id': data.message.id})
     elif re.match('settings_delete', callback) is not None:
-        name = re.split('settings_delete_', callback, maxsplit=1)[1]
-        team = backend.find_team(name)
+        number = re.split('settings_delete_', callback, maxsplit=1)[1]
         message_id = bot.send_message(chat_id=chat_id, text='Вы точно хотите удалить команду?',
                                       reply_markup=keyboard.YesNo()).message_id
         backend.insert_session(chat_id=chat_id, name='inline_teams_settings_delete',
-                               args={'teamName': team['name'], 'delete': message_id, 'message_id': data.message.id})
+                               args={'teamNumber': number, 'delete': message_id, 'message_id': data.message.id})
     elif re.match('settings_change_participant_id', callback) is not None:
         id = re.split('settings_change_participant_id', callback, maxsplit=1)[1]
         user_id = re.split('[+]', id, maxsplit=1)[0]
-        team_name = re.split('[+]', id, maxsplit=1)[1]
+        team_number = re.split('[+]', id, maxsplit=1)[1]
         user = backend.get_user(user_id)
-        team = backend.find_team(team_name)
+        team = backend.find_team(team_number)
         if 'team' in user:
-            if user['team'] == team_name:
+            if user['team'] == team_number:
                 team['participants'].remove(user_id)
                 user['team'] = None
             elif user['team'] is not None:
                 bot.send_message(chat_id, 'Пользователь уже находится в другой команде.')
             else:
                 team['participants'].append(user['user_id'])
-                user['team'] = team_name
+                user['team'] = team_number
         else:
             team['participants'].append(user['user_id'])
-            user['team'] = team_name
-        backend.update_team(team_name, {'participants': team['participants']})
+            user['team'] = team_number
+        backend.update_team(team_number, {'participants': team['participants']})
         backend.update_user(user_id, {'team': user['team']})
-        bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, team_name),
-                              reply_markup=keyboard.ParticipantsSettings(chat_id, team_name), parse_mode='html')
+        bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, team_number),
+                              reply_markup=keyboard.ParticipantsSettings(chat_id, team_number), parse_mode='html')
     elif re.match('settings_change_participants_back', callback) is not None:
         try:
-            name = re.split('settings_change_participants_back', callback, maxsplit=1)[1]
+            number = re.split('settings_change_participants_back', callback, maxsplit=1)[1]
             try:
-                bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, name),
-                                      reply_markup=keyboard.TeamSettings(chat_id, name))
+                bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, number),
+                                      reply_markup=keyboard.TeamSettings(chat_id, number))
             except:
                 ...
         except Exception as err:

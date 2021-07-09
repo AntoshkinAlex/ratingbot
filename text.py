@@ -72,9 +72,10 @@ def SettingsInfo(userId, chatId):
     except Exception as err:
         print(err, 'Произошла ошибка при сборке текста для настроек')
 
-def TeamInfo(chatId, teamName):
+def TeamInfo(chatId, teamNumber):
     try:
         chatId = str(chatId)
-        return teamName
+        team = backend.find_team(teamNumber)
+        return team['name']
     except Exception as err:
         print(err, 'Произошла ошибка при сборке текста для команды')

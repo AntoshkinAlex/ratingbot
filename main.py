@@ -218,7 +218,6 @@ def callback_text(text):
             if session['name'] == 'inline_teams_settings_delete':
                 admin.delete_team(message, chatId, session['args'])
 
-
         if re.match('inline_profile_change_', message) is not None:  # настройки профиля
             callback.InlineProfile(text, re.split('inline_profile_change_', message, maxsplit=1)[1])
         elif re.match('inline_users_id', message) is not None:  # настройки профиля
