@@ -342,6 +342,11 @@ def delete_user(message, chat_id, args):
         if message != '12345':
             bot.send_message(chat_id, 'Вы ввели неправильный код.')
             return
+        user = backend.get_user(user_id)
+        if 'team' in user and user['team'] is not None:
+            team = backend.find_team(user['team'])
+            team['participants'].remove(user_id)
+            backend.update_team(team['name'], {'participants': team['participants']})
         backend.delete_user(user_id)
         bot.send_message(chat_id, 'Пользователь успешно удалён.')
     except Exception as err:
@@ -359,8 +364,10 @@ def change_team_name(newName, chat_id, args):
         else:
             backend.update_team(oldName, {'name': newName})
             team = backend.find_team(newName)
-            bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text='Инфа о команде',
-                                  reply_markup=keyboard.TeamSettings(chat_id, team), parse_mode='html')
+            for user in team['participants']:
+                backend.update_user(user, {'team': newName})
+            bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text=text.TeamInfo(chat_id, newName),
+                                  reply_markup=keyboard.TeamSettings(chat_id, newName), parse_mode='html')
     except Exception as err:
         error.Log(errorAdminText='❗Произошла ошибка при обновлении названия команды' + str(err))
 
@@ -370,6 +377,9 @@ def delete_team(text, chat_id, args):
         bot.delete_message(chat_id=chat_id, message_id=args['delete'])
         name = args['teamName']
         if text == "yes":
+            team = backend.find_team(name)
+            for user in team['participants']:
+                backend.update_user(user, {'team': None})
             backend.delete_team(name)
             bot.edit_message_text(chat_id=chat_id, message_id=args['message_id'], text='Выберите команду',
                                   reply_markup=keyboard.InlineTeams(chat_id), parse_mode='html')

@@ -165,7 +165,7 @@ def delete_admin(chat_id):
 
 
 def insert_team():
-    mdb.teams.insert({"name": 'Новая команда'})
+    mdb.teams.insert({"name": 'Новая команда', 'participants': []})
 
 
 def find_team(name):

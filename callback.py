@@ -61,12 +61,17 @@ def InlineProfile(data, callback):
         try:
             chat_id = data.from_user.id
             try:
-                bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text='Выберите пользователя:',
-                                      reply_markup=keyboard.InlineUsers(chat_id))
+                if re.match('back_team_', callback) is not None:
+                    name = re.split('back_team_', callback, maxsplit=1)[1]
+                    bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, name),
+                                          reply_markup=keyboard.TeamSettings(chat_id, name))
+                else:
+                    bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text='Выберите пользователя:',
+                                          reply_markup=keyboard.InlineUsers(chat_id))
             except:
                 ...
         except Exception as err:
-            error.Log(errorAdminText='❗Произошла ошибка при изменении возвращении к списку пользователей ' + str(err))
+            error.Log(errorAdminText='❗Произошла ошибка при возврате к списку пользователей ' + str(err))
 
     for field in fields:
         if re.match(field, callback) is not None:
@@ -118,17 +123,15 @@ def InlineTeams(data, callback):
                                args={'teamName': 'Новая команда', 'delete': message_id, 'message_id': data.message.id})
     elif re.match('team_name', callback) is not None:
         name = re.split('team_name_', callback, maxsplit=1)[1]
-        team = backend.find_team(name)
-        if team is None:
+        if backend.find_team(name) is None:
             bot.send_message(chat_id=chat_id, text='Такой команды больше не существует.')
             return
-        bot.send_message(chat_id=chat_id, text='Тут будет инфа о команде ' + team['name'],
-                         reply_markup=keyboard.TeamSettings(chat_id, team))
+        bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, name),
+                              reply_markup=keyboard.TeamSettings(chat_id, name))
 
     elif re.match('settings_participants', callback) is not None:
         name = re.split('settings_participants_', callback, maxsplit=1)[1]
-        team = backend.find_team(name)
-        bot.send_message(chat_id=chat_id, text='Тут будут настройки')
+        bot.send_message(chat_id=chat_id, text=text.TeamInfo(chat_id, name), reply_markup=keyboard.ParticipantsSettings(chat_id, name))
     elif re.match('settings_change_name', callback) is not None:
         name = re.split('settings_change_name_', callback, maxsplit=1)[1]
         team = backend.find_team(name)
@@ -142,3 +145,41 @@ def InlineTeams(data, callback):
                                       reply_markup=keyboard.YesNo()).message_id
         backend.insert_session(chat_id=chat_id, name='inline_teams_settings_delete',
                                args={'teamName': team['name'], 'delete': message_id, 'message_id': data.message.id})
+    elif re.match('settings_change_participant_id', callback) is not None:
+        id = re.split('settings_change_participant_id', callback, maxsplit=1)[1]
+        user_id = re.split('[+]', id, maxsplit=1)[0]
+        team_name = re.split('[+]', id, maxsplit=1)[1]
+        user = backend.get_user(user_id)
+        team = backend.find_team(team_name)
+        if 'team' in user:
+            if user['team'] == team_name:
+                team['participants'].remove(user_id)
+                user['team'] = None
+            elif user['team'] is not None:
+                bot.send_message(chat_id, 'Пользователь уже находится в другой команде.')
+            else:
+                team['participants'].append(user['user_id'])
+                user['team'] = team_name
+        else:
+            team['participants'].append(user['user_id'])
+            user['team'] = team_name
+        backend.update_team(team_name, {'participants': team['participants']})
+        backend.update_user(user_id, {'team': user['team']})
+        bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, team_name),
+                              reply_markup=keyboard.ParticipantsSettings(chat_id, team_name), parse_mode='html')
+    elif re.match('settings_change_participants_back', callback) is not None:
+        try:
+            name = re.split('settings_change_participants_back', callback, maxsplit=1)[1]
+            try:
+                bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text=text.TeamInfo(chat_id, name),
+                                      reply_markup=keyboard.TeamSettings(chat_id, name))
+            except:
+                ...
+        except Exception as err:
+            error.Log(errorAdminText='❗Произошла ошибка при возврате к общей информации о команде ' + str(err))
+    elif re.match('settings_back', callback) is not None:
+        try:
+            bot.edit_message_text(chat_id=chat_id, message_id=data.message.message_id, text='Выберите команду:',
+                                  reply_markup=keyboard.InlineTeams(chat_id))
+        except Exception as err:
+            error.Log(errorAdminText='❗Произошла ошибка при возврате к общей информации о команде ' + str(err))

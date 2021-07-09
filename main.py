@@ -177,7 +177,7 @@ def continue_chat(message):
             #     bot.send_message(userId, "Выберите:", reply_markup=keyboard.InlineInfo())
             elif message.text == "Профиль 👨‍💻":
                 bot.send_message(userId, text_creator.SettingsInfo(userId, userId),
-                                 reply_markup=keyboard.InlineProfile(userId, userId), parse_mode='html')
+                                 reply_markup=keyboard.InlineProfile(userId, userId, profile=True), parse_mode='html')
             elif message.text == "Пользователи 👤":
                 bot.send_message(userId, 'Выберите пользователя:',
                                  reply_markup=keyboard.InlineUsers(userId))
@@ -222,9 +222,15 @@ def callback_text(text):
         if re.match('inline_profile_change_', message) is not None:  # настройки профиля
             callback.InlineProfile(text, re.split('inline_profile_change_', message, maxsplit=1)[1])
         elif re.match('inline_users_id', message) is not None:  # настройки профиля
-            userId = re.split('inline_users_id', message, maxsplit=1)[1]
+            team = None
+            if re.match('inline_users_id_team', message) is not None:
+                id = re.split('inline_users_id_team', message, maxsplit=1)[1]
+                userId = re.split('[+]', id, maxsplit=1)[0]
+                team = re.split('[+]', id, maxsplit=1)[1]
+            else:
+                userId = re.split('inline_users_id', message, maxsplit=1)[1]
             bot.edit_message_text(chat_id=chatId, message_id=text.message.id, text=text_creator.SettingsInfo(userId, chatId),
-                             reply_markup=keyboard.InlineProfile(userId, chatId), parse_mode='html')
+                             reply_markup=keyboard.InlineProfile(userId, chatId, team), parse_mode='html')
         elif re.match('inline_teams_', message) is not None: # команды
             callback.InlineTeams(text, re.split('inline_teams_', message, maxsplit=1)[1])
 
