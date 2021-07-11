@@ -50,6 +50,14 @@ def InlineProfile(userId, chatId, team=None, profile=None):
             backBut = InlineKeyboardButton(text="⬅️",
                                            callback_data="inline_profile_change_back")
         keyboard.add(backBut)
+
+    if userId != chatId:
+        likeBut = InlineKeyboardButton(text="👍️",
+                                       callback_data="inline_profile_change_like_" + userId)
+        dislikeBut = InlineKeyboardButton(text="👎",
+                                          callback_data="inline_profile_change_dislike_" + userId)
+        keyboard.add(likeBut, dislikeBut)
+
     if is_admin or userId == chatId:
         keyboard.add(nameBut, birthdayBut)
         keyboard.add(handleCFBut, notificationsBut)

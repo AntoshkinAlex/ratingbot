@@ -5,6 +5,7 @@ import error
 import keyboard
 import text
 import re
+import admin
 from datetime import date
 import index as codeforces
 
@@ -351,6 +352,38 @@ def delete_user(message, chat_id, args):
         bot.send_message(chat_id, 'Пользователь успешно удалён.')
     except Exception as err:
         error.Log(errorAdminText='❗Произошла ошибка при удалении пользователя' + str(err))
+
+
+def like_profile(message, chat_id, args):
+    try:
+        user = backend.get_user(chat_id)
+        bot.delete_message(chat_id=chat_id, message_id=args['delete'])
+
+        like_type = args['likeType']
+        if like_type == 'likeCount':
+            field = 'newLikes'
+        else:
+            field = 'newDislikes'
+
+        if (user['is_participant'] or admin.Check(chat_id)) and message == 'yes':
+            if user[str(like_type)] > 0:
+                userLiked = backend.get_user(args['user_id'])
+                backend.update_user(args['user_id'], {field: userLiked[field] + 1})
+                backend.update_user(chat_id, {str(like_type): user[str(like_type)] - 1})
+                if field == 'newLikes':
+                    bot.send_message(chat_id, 'Лайк поставлен.')
+                else:
+                    bot.send_message(chat_id, 'Дизлайк поставлен.')
+            else:
+                if field == 'newLikes':
+                    bot.send_message(chat_id, 'У вас закончились лайки :(')
+                else:
+                    bot.send_message(chat_id, 'У вас закончились дизлайки :(')
+        elif message != 'no':
+            bot.send_message(chat_id, 'У вас нет возможности оценить пользователя.')
+
+    except Exception as err:
+        error.Log(errorAdminText='❗Произошла ошибка при лайке профиля' + str(err))
 
 ########################################################################################################################
 

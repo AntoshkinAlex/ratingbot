@@ -19,3 +19,5 @@ activity = [
 ]
 
 mainAdmin = '374683082'
+testGroup = '-1001150364485'
+hqGroup = '-1001267398752'

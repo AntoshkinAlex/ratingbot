@@ -72,6 +72,18 @@ def InlineProfile(data, callback):
                 ...
         except Exception as err:
             error.Log(errorAdminText='❗Произошла ошибка при возврате к списку пользователей ' + str(err))
+    elif (re.match('like', callback) is not None or re.match('dislike', callback) is not None) and backend.get_likesActivate():
+        chat_id = data.from_user.id
+        if re.match('like', callback) is not None:
+            likeType = 'likeCount'
+            user_like_id = re.split('like_', callback, maxsplit=1)[1]
+            message_id = bot.send_message(chat_id, 'Вы уверены, что хотите поставить лайк этому пользователю?', reply_markup=keyboard.YesNo()).message_id
+        else:
+            likeType = 'dislikeCount'
+            user_like_id = re.split('dislike_', callback, maxsplit=1)[1]
+            message_id = bot.send_message(chat_id, 'Вы уверены, что хотите поставить дизлайк этому пользователю?', reply_markup=keyboard.YesNo()).message_id
+        backend.insert_session(chat_id, 'inline_profile_change_like',
+                               {'user_id': user_like_id, 'delete': message_id, 'likeType': likeType})
 
     for field in fields:
         if re.match(field, callback) is not None:

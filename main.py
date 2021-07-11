@@ -217,6 +217,8 @@ def callback_text(text):
                 return
             if session['name'] == 'inline_teams_settings_delete':
                 admin.delete_team(message, chatId, session['args'])
+            elif session['name'] == 'inline_profile_change_like':
+                admin.like_profile(message, chatId, session['args'])
 
         if re.match('inline_profile_change_', message) is not None:  # настройки профиля
             callback.InlineProfile(text, re.split('inline_profile_change_', message, maxsplit=1)[1])

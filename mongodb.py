@@ -7,8 +7,13 @@ mdb = MongoClient(MONGODB_LINK)[MONGODB]  # переменная для рабо
 def get_teamNumber():
     for value in mdb.consts.find({"name": "teamNumber"}):
         number = value['value']
-        mdb.consts.update({"name": "teamNumber"}, {'value': number + 1})
+        mdb.consts.update({"name": "teamNumber"}, {'$set': {'value': number + 1}}, upsert=True)
         return number
+
+
+def get_likesActivate():
+    for value in mdb.consts.find({"name": "likesActivate"}):
+        return value['value']
 
 # ===========================================================
 
@@ -39,11 +44,18 @@ def insert_user(user_id, alias=None):
         "name": '⭕️',
         "notifications": True,
         "user_id": user_id,
+        "likes": 0,
+        "dislikes": 0,
+        "newLikes": 0,
+        "newDislikes": 0,
+        "likeCount": 0,
+        "dislikeCount": 0
     }
 
     if old_user is not None:
         fields = ['active_name', 'birthday', 'codeforces_handle', 'division', 'handle', 'is_participant', 'name',
-                  'notifications', 'confirmation']
+                  'notifications', 'confirmation', 'likes', 'dislikes', 'newLikes', 'newDislikes', 'likeCount',
+                  'dislikeCount']
         for field in fields:
             if field in old_user:
                 user[field] = old_user[field]
@@ -53,6 +65,7 @@ def insert_user(user_id, alias=None):
     except Exception as err:
         print("Ошибка при добавлении пользователя в базу данных", err)
     return user
+
 
 
 def update_user(user_id, keys):

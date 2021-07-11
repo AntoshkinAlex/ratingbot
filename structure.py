@@ -1,4 +1,7 @@
+import admin
 import math
+
+import error
 import index as req
 import time
 import const
@@ -61,9 +64,38 @@ def weather(now):
                 print('Пользователь ' + user['name'] + ' удалил чат', err)
 
         users = backend.get_users({'is_participant': True})
+
+        try:
+            currentDay = datetime.datetime.now(pytz.timezone('Europe/Moscow')).weekday()
+            if currentDay == 6 and backend.get_likesActivate():
+                usersLikes = []
+                print_like_stats = table.Texttable()
+                print_like_stats.set_deco(table.Texttable.HEADER)
+                print_like_stats.set_cols_align(["l", "l", "l"])
+                print_like_stats.set_cols_valign(["t", "t", "t"])
+                print_like_stats.set_cols_dtype(['t', 't', 't'])
+                print_like_stats.add_row(["Фамилия\n", "👍\n", "👎\n"])
+
+                for user in users:
+                    if user['is_participant'] or admin.Check(user['user_id']):
+                        usersLikes.append([user['name'][: user['name'].find(' ')], user['newLikes'], user['newDislikes'], user['likes'], user['dislikes']])
+                        backend.update_user(user['user_id'], {'likes': user['likes'] + user['newLikes'],
+                                                              'dislikes': user['dislikes'] + user['newDislikes']})
+                        backend.update_user(user['user_id'], {'likeCount': 1, 'dislikeCount': 1, 'newLikes': 0, 'newDislikes': 0})
+                        bot.send_message(user['user_id'], 'У вас есть 1 лайк и 1 дизлайк, которые вы можете кому-то поставить 👍')
+
+                usersLikes.sort()
+                for user in usersLikes:
+                    print_like_stats.add_row([user[0], str(user[3]) + '(+' + str(user[1]) + ')', str(user[4]) + '(+' + str(user[2]) + ')'])
+                stats = print_like_stats.draw()
+                bot.send_message(const.hqGroup, "<pre>" + stats + "</pre>", parse_mode=html)
+        except Exception as err:
+            error.Log(errorAdminText='❗Произошла ошибка при создании сводной таблицы с лайками' + str(err))
+
         all = backend.get_users({'is_participant': True})
         now = re.split(r'[-]', now)
         now.reverse()
+
         for user in users:
             if 'birthday' in user and user['birthday'] is not None:
                 day = re.split(r'[.]', user['birthday'])
@@ -71,9 +103,9 @@ def weather(now):
                     for one in all:
                         try:
                             if one['user_id'] != user['user_id']:
-                                bot.send_message(one['user_id'], 'Сегодня ' + user['name'] + ' празднует день рождения🎉!')
+                                bot.send_message(one['user_id'], 'Сегодня ' + user['name'] + ' празднует день рождения🎉🎁🎈!')
                             else:
-                                bot.send_message(one['user_id'], 'Бот Сашка поздравляет тебя с днём твоего рождения🎉!')
+                                bot.send_message(one['user_id'], 'Бот Сашка поздравляет тебя с днём твоего рождения🎉🎁🎈!')
                         except Exception as err:
                             print('Пользователь ' + one['name'] + ' удалил чат', err)
 
